@@ -1,6 +1,6 @@
 <div align="center">
 
-<img width="144" src="fastlane/metadata/android/en-US/images/icon.png" alt="DartDL logo">
+<img width="144" src="icon.png" alt="DartDL logo">
 
 # DartDL
 
