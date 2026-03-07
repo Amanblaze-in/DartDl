@@ -35,13 +35,29 @@ There are two versions of DartDL available depending on your needs:
 
 ---
 
-## ✨ Features
+<br>
 
-- **Blazing Fast Downloads:** Powered by the robust `yt-dlp` backend.
-- **Material You Design:** A beautiful, responsive UI that adapts to your device's theme colors.
-- **Background Downloading:** Uses efficient Android services to download in the background.
-- **Subtitles & Metadata:** Automatically embeds thumbnails and metadata into downloaded files.
-- **Custom Formats:** Choose exactly the quality you want.
+## 📖 Features
+
+- Download videos and audio files from video platforms supported by [yt-dlp](https://github.com/yt-dlp/yt-dlp) (formerly youtube-dl).
+
+- Embed metadata and video thumbnail into extracted audio files supported by [mutagen](https://github.com/quodlibet/mutagen).
+
+- Download all videos in the playlist with one click.
+
+- Use embedded [aria2c](https://github.com/aria2/aria2) as external downloader for all your downloads.
+
+- Embed subtitles into the downloaded videos.
+
+- Execute custom yt-dlp commands with templates.
+
+- Manage in-app downloads and custom command templates.
+
+- Easy to use and user-friendly.
+
+- [Material Design 3](https://m3.material.io/) style UI, with dynamic color theme.
+
+- MAD: UI and logic written with pure Kotlin. Single activity, no fragments, only composable destinations.
 
 ## 📜 License
 
