@@ -1,0 +1,6 @@
+Enhanced Playback: Fixed issues with MKV, WebM, and MP3 files. Downloads now open seamlessly in your favorite media player.
+Improved UI: Restored the Download Queue and History pages for better task management.
+Smart MIME Detection: Improved file handling and URI permissions for Android 11+ (Scopped Storage).
+Notification Icon: Updated status bar icon for a cleaner look.
+Performance: General bug fixes and stability improvements for a faster experience.
+Bug Fix: Resolved Pinterest download 403 errors and added background auto-updater for yt-dlp.

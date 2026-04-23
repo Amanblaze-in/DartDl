@@ -1,0 +1,48 @@
+# Build artifacts
+/build
+app/build
+**/release/
+*.apk
+*.aab
+
+# Local configuration
+local.properties
+/local.properties
+/keystore.properties
+keystore
+
+# IDE settings
+.gradle
+.iml
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+/.idea/deploymentTargetDropDown.xml
+/.idea/shelf
+.DS_Store
+
+# Native build
+.externalNativeBuild
+.cxx
+
+# Other
+.kotlin
+capture/
+scripts/
+tmp/
+*.log
+build_err*.txt
+rebrand_metadata.py
+fix_branding.py
+generate_logo.py
+generate_pngs.py
+preview.py
+preview_bell_only.py
+preview_expanded.py
+render_icon.py
+replace.py
+resize_user_logo.py
+revert_imports.py

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about_page">Version, feedback, credits</string>
+    <string name="check_for_updates_desc">Check for the latest version on Play Store</string>
+    <string name="sponsor_desc">Support this app by sponsoring</string>
+    <string name="sponsor_msg">DartDL will be always free for everyone. If you like it, please consider sponsoring me!</string>
+    <string name="switch_to_github_builds">switching to other builds</string>
+</resources>

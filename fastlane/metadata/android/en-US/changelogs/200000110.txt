@@ -1,0 +1,6 @@
+- AdMob Integration: Added Native, Interstitial, Rewarded, and App Open ads to support application development.
+- High-Res Downloads: Introduced a daily limit of 2 free 1080p+ downloads; unlock more by watching a rewarded ad.
+- Notification Fix: Resolved the issue where the "Downloading" notification remained active after a download task was canceled.
+- Privacy Policy: Integrated a Privacy Policy link within the navigation drawer for enhanced transparency.
+- Stability: Fixed background service lifecycle issues and optimized overall application performance.
+- Version: Updated the application to version 2.0.0-alpha.1.

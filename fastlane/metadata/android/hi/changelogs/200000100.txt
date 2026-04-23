@@ -1,0 +1,5 @@
+Enhanced Playback: MKV, WebM aur MP3 files ke liye playback theek kiya gaya. Downloads ab aapke favorite media player mein asani se khulenge.
+Improved UI: Behtar task management ke liye Download Queue aur History pages ko restore kiya gaya.
+Smart MIME Detection: Android 11+ (Scoped Storage) ke liye file handling aur URI permissions mein sudhaar.
+Notification Icon: Pehle se behtar look ke liye status bar icon update kiya gaya.
+Performance: Tez experience ke liye bug fixes aur stability improvements.
