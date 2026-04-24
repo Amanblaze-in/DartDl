@@ -5,7 +5,16 @@ All notable changes (starting from v1.7.3) to stable releases will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.0.1][2.0.1] - 2026-04-24
+
+### Added
+- Rebranded the project to DartDL (forked from Seal).
+- Updated README with Seal's features and proper attribution.
+- Removed author-specific mentions and contact information for improved privacy and rebranding.
+- Updated Privacy Policy and Code of Conduct.
+
 ## [v2.0.0-alpha.3][2.0.0-alpha.3] - 2026-04-20
+
 
 ### Fixed
 - Removed restricted `MANAGE_EXTERNAL_STORAGE` permission to comply with Google Play Store policies.
@@ -15,14 +24,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [v2.0.0-alpha.2][2.0.0-alpha.2] - 2026-04-18
 
 ### Added
-- Switched project to Proprietary License (Copyright © Amanblaze)
-- Added official support contact: support@amanblaze.in
 - Updated sponsorship link to Buy Me a Coffee
 
 ### Fixed
 - Fixed YouTube/YouTube Music "Processing" hang by proactively blocking restricted URLs in Play Store builds
 - Resolved task cancellation bug where tasks would hang indefinitely if aborted during info fetching
 - Project-wide cleanup of temporary logs, Python scripts, and GitHub versioning artifacts
+
 
 ## [v2.0.0-alpha.1][2.0.0-alpha.1] - 2026-04-11
 
@@ -381,7 +389,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Playlist results are limited to 200 videos
 
+[2.0.1]: https://github.com/examvijeta/New-DartDl/releases/tag/v2.0.1
 [1.7.3]: https://github.com/JunkFood02/Seal/releases/tag/v1.7.3
+
 
 [1.8.0]: https://github.com/JunkFood02/Seal/releases/tag/v1.8.0
 

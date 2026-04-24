@@ -7,13 +7,19 @@
     <b>A fast, modern video downloader app for Android, powered by yt-dlp.</b>
 </p>
 
+[![GitHub License](https://img.shields.io/github/license/JunkFood02/Seal?style=flat-square)](LICENSE)
+[![Weblate](https://hosted.weblate.org/widgets/seal/-/seal/svg-badge.svg)](https://hosted.weblate.org/engage/seal/)
+[![Telegram](https://img.shields.io/badge/Telegram-Channel-blue.svg?style=flat-square&logo=telegram)](https://t.me/Amanblaze)
+
 </div>
 
 ---
 
 ## 🚀 Overview
 
-**DartDL** is a powerful video/audio downloading application designed with a clean, modern interface using Material You principles. It allows you to download videos from hundreds of supported platforms directly to your Android device with advanced format selection and metadata extraction.
+**DartDL** is a powerful video/audio downloading application designed with a clean, modern interface using Material You principles. It is based on the amazing [Seal](https://github.com/JunkFood02/Seal) project and powered by the robust `yt-dlp` backend.
+
+DartDL allows you to download videos from hundreds of supported platforms directly to your Android device with advanced format selection and metadata extraction.
 
 > **Note on Play Store Compliance:** Due to Google Play strict policies, downloading from YouTube is explicitly **disabled** in the official Play Store release of DartDL to prevent account suspension.
 
@@ -24,7 +30,11 @@
 - **Background Downloading:** Uses efficient Android services to download in the background without keeping the app open.
 - **Subtitles & Metadata:** Automatically embeds thumbnails, metadata, and subtitles into downloaded files alongside the video.
 - **Custom Formats:** Choose exactly the audio or video quality you want.
-- **PlayList Support:** Download entire playlists with a single click.
+- **Playlist Support:** Download entire playlists with a single click.
+- **Aria2 Integration:** Support for aria2c as an external downloader for even faster speeds.
+- **SponsorBlock Support:** Automatically remove or mark sponsor segments in videos.
+- **Advanced Networking:** Built-in proxy support and cookie management for accessing restricted content.
+- **Custom Commands:** Execute complex yt-dlp commands directly with templates.
 
 ## 📂 Project Structure 📱
 
@@ -35,7 +45,7 @@
 ┣ 📂 color/                      🖌️ Secondary module for color processing/dynamic theming
 ┣ 📂 gradle/                     📦 Gradle wrapper and version catalog
 ┣ 📂 fastlane/                   🏎️ Fastlane configuration for automated deployment
-┗ 📂 logo_assets/                🎨 Branding and design assets
+┣ 📂 logo_assets/                🎨 Branding and design assets
 ```
 
 ## 🛠️ Build Instructions
@@ -53,18 +63,20 @@ To build DartDL from source, you will need **JDK 21** and Android Studio.
 ```
 *This generates a compliant `.aab` file ready for Play Console upload.*
 
-## ☕ Support
+## ❤️ Credits
 
-If you find DartDL useful and want to support its development, you can buy me a coffee!
+DartDL is a fork of the incredible **[Seal](https://github.com/JunkFood02/Seal)** project by **[JunkFood02](https://github.com/JunkFood02)**. We are grateful for their amazing work and for making it open source.
 
-<a href="https://www.buymeacoffee.com/Amanblaze" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
-
-## 📧 Support & Feedback
-
-For any issues or feedback, please contact us at: **support@amanblaze.in**
+Special thanks to:
+- **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** for the downloader core.
+- **[youtubedl-android](https://github.com/yausername/youtubedl-android)** for the Android wrapper.
 
 ## 📜 License
 
-Copyright © 2024-2026 **Amanblaze**. All rights reserved.
+DartDL is licensed under the **GNU General Public License v3.0**. See the [LICENSE](LICENSE) file for more details.
 
-DartDL is a proprietary video downloader project. The DartDL Icon and Brand Name are custom assets and should not be reused without permission.
+---
+<div align="center">
+Made with ❤️ by the DartDL Team
+</div>
+

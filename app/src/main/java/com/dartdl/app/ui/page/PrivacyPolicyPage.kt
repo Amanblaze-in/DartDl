@@ -49,10 +49,11 @@ fun PrivacyPolicyPage(onNavigateBack: () -> Unit) {
                 SectionHeader("Introduction")
                 SectionBody(
                     "This Privacy Policy describes how DartDL handles your information. " +
-                            "DartDL is a video and audio downloader application created by Amanblaze as an ad-supported service. " +
+                            "DartDL is a video and audio downloader application. " +
                             "By using the Application, you agree to the terms outlined in this policy."
                 )
             }
+
 
             item {
                 SectionHeader("Information We DO NOT Collect")
@@ -110,10 +111,10 @@ fun PrivacyPolicyPage(onNavigateBack: () -> Unit) {
             item {
                 SectionHeader("Contact Us")
                 SectionBody(
-                    "For any questions regarding this Privacy Policy or data inquiries, please reach out to us at:\n" +
-                            "Email: support@amanblaze.in"
+                    "For any questions regarding this Privacy Policy or data inquiries, please reach out to the project maintainers via the repository."
                 )
             }
+
 
             item {
                 SectionHeader("Changes to Policy")
