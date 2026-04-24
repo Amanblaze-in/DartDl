@@ -8,7 +8,9 @@
 </p>
 
 [![GitHub License](https://img.shields.io/github/license/JunkFood02/Seal?style=flat-square)](LICENSE)
+[![Play Store](https://img.shields.io/badge/Google_Play-DartDL-green?style=flat-square&logo=google-play)](https://play.google.com/store/apps/details?id=com.dartdl.app)
 [![Weblate](https://hosted.weblate.org/widgets/seal/-/seal/svg-badge.svg)](https://hosted.weblate.org/engage/seal/)
+
 [![Telegram](https://img.shields.io/badge/Telegram-Channel-blue.svg?style=flat-square&logo=telegram)](https://t.me/Amanblaze)
 
 </div>
