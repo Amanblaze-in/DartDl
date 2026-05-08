@@ -1,6 +1,7 @@
 package com.dartdl.app.ui.page.downloadv2.configure
 
 import android.app.Activity
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -48,6 +49,9 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.FileDownload
 import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import com.dartdl.app.R
 import com.dartdl.app.util.AdManager
 import androidx.compose.material.icons.outlined.NewLabel
 import androidx.compose.material.icons.outlined.SettingsSuggest
@@ -93,7 +97,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dartdl.app.App
-import com.dartdl.app.R
 import com.dartdl.app.ui.common.HapticFeedback.longPressHapticFeedback
 import com.dartdl.app.ui.common.motion.materialSharedAxisX
 import com.dartdl.app.ui.component.ButtonChip
@@ -105,6 +108,8 @@ import com.dartdl.app.ui.component.SingleChoiceChip
 import com.dartdl.app.ui.component.SingleChoiceSegmentedButton
 import com.dartdl.app.ui.component.VideoFilterChip
 import com.dartdl.app.ui.page.command.TemplatePickerDialog
+import com.dartdl.app.util.findActivity
+import com.dartdl.app.util.makeToast
 import com.dartdl.app.ui.page.downloadv2.configure.ActionButton.Download
 import com.dartdl.app.ui.page.downloadv2.configure.ActionButton.FetchInfo
 import com.dartdl.app.ui.page.downloadv2.configure.ActionButton.StartTask
@@ -146,7 +151,9 @@ import com.dartdl.app.util.USE_CUSTOM_AUDIO_PRESET
 import com.dartdl.app.util.VIDEO_FORMAT
 import com.dartdl.app.util.VIDEO_QUALITY
 import com.dartdl.app.util.makeToast
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
 
 @Composable
 private fun DownloadType.label(): String =
@@ -287,9 +294,11 @@ private fun ErrorPage(modifier: Modifier = Modifier, state: Error, onActionPost:
                 when (this) {
                     is Action.FetchFormats -> url
                     is Action.FetchPlaylist -> url
-                    else -> {
-                        throw IllegalArgumentException()
-                    }
+                    is Action.DownloadWithPreset -> urlList.firstOrNull() ?: ""
+                    is Action.RunCommand -> url
+                    is Action.ProceedWithURLs -> urlList.firstOrNull() ?: ""
+                    is Action.UpdateUrlText -> text
+                    else -> ""
                 }
             }
     Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -303,17 +312,16 @@ private fun ErrorPage(modifier: Modifier = Modifier, state: Error, onActionPost:
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 12.dp),
         )
-        Text(
-                text = state.throwable.message.toString(),
-                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier =
-                        Modifier.padding(vertical = 16.dp, horizontal = 20.dp)
-                                .fillMaxWidth()
-                                .verticalScroll(rememberScrollState()),
-                maxLines = 20,
-                overflow = TextOverflow.Clip,
-        )
+        
+        if (state.throwable.message?.contains("content isn't available to everyone", ignoreCase = true) == true) {
+            Text(
+                text = "Tip: This content may be private or restricted. Try importing Cookies in Settings -> Network.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
+            )
+        }
 
         Row(modifier = Modifier) {
             FilledTonalButton(onClick = { onActionPost(state.action) }) { Text("Retry") }
@@ -354,7 +362,7 @@ private fun DownloadDialogContent(
     ) { state ->
         when (state) {
             is Configure -> {
-                check(state.urlList.isNotEmpty())
+                if (state.urlList.isEmpty()) return@AnimatedContent
                 if (state.urlList.size == 1) {
                     ConfigurePage(
                             url = state.urlList.first(),
@@ -449,32 +457,6 @@ private fun ErrorPreview() {
     }
 }
 
-@Composable
-fun FormatPage(
-        modifier: Modifier = Modifier,
-        state: SelectionState.FormatSelection,
-        onDismissRequest: () -> Unit,
-) {
-    val sheetState =
-            androidx.compose.material.rememberModalBottomSheetState(
-                    initialValue = ModalBottomSheetValue.Hidden,
-                    skipHalfExpanded = true,
-            )
-
-    LaunchedEffect(state) { sheetState.show() }
-    val scope = rememberCoroutineScope()
-    BackHandler { scope.launch { sheetState.hide() }.invokeOnCompletion { onDismissRequest() } }
-
-    DartDLModalBottomSheetM2Variant(sheetState = sheetState, sheetGesturesEnabled = false) {
-        FormatPage(
-                modifier = modifier,
-                videoInfo = state.info,
-                onNavigateBack = {
-                    scope.launch { sheetState.hide() }.invokeOnCompletion { onDismissRequest() }
-                },
-        )
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 /*@Preview(name = "Dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
@@ -1131,7 +1113,8 @@ private fun ActionButtons(
         onTaskStart: () -> Unit,
 ) {
     val context = LocalContext.current
-    val activity = context as? Activity
+    val scope = rememberCoroutineScope()
+    val activity = remember(context) { context.findActivity() }
     val action =
             if (selectedType == Command) {
                 StartTask
@@ -1140,6 +1123,15 @@ private fun ActionButtons(
             } else {
                 Download
             }
+
+    var showRewardAdDialog by remember { mutableStateOf(false) }
+    var isAdLoading by remember { mutableStateOf(false) }
+
+    LaunchedEffect(showRewardAdDialog) {
+        if (showRewardAdDialog) {
+            AdManager.loadRewarded(context)
+        }
+    }
 
     val state = rememberLazyListState()
     LazyRow(
@@ -1160,19 +1152,15 @@ private fun ActionButtons(
             Button(
                     modifier = Modifier,
                     onClick = {
-                        if (activity != null) {
-                            AdManager.showRewarded(activity) {
-                                when (action) {
-                                    FetchInfo -> onFetchInfo()
-                                    Download -> onDownload()
-                                    StartTask -> onTaskStart()
-                                }
-                            }
+                        // For Preset downloads, we require an ad
+                        if (action == Download) {
+                            showRewardAdDialog = true
                         } else {
+                            // For FetchInfo or StartTask, just proceed or use Interstitial if needed
                             when (action) {
                                 FetchInfo -> onFetchInfo()
-                                Download -> onDownload()
                                 StartTask -> onTaskStart()
+                                else -> {}
                             }
                         }
                     },
@@ -1195,5 +1183,81 @@ private fun ActionButtons(
                 }
             }
         }
+    }
+
+    if (showRewardAdDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!isAdLoading) showRewardAdDialog = false },
+            title = { Text(stringResource(R.string.download)) },
+            text = { 
+                Column {
+                    Text(stringResource(R.string.watch_ad_to_proceed))
+                    if (isAdLoading) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("Loading Ad...", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    enabled = !isAdLoading,
+                    onClick = {
+                        if (activity != null) {
+                            if (AdManager.isRewardedAdReady) {
+                                showRewardAdDialog = false
+                                scope.launch {
+                                    kotlinx.coroutines.delay(100)
+                                    AdManager.showRewarded(activity) { success ->
+                                        if (success) {
+                                            onDownload()
+                                        } else {
+                                            context.makeToast(R.string.reward_not_completed)
+                                        }
+                                    }
+                                }
+                            } else {
+                                isAdLoading = true
+                                AdManager.loadRewarded(context) { ready ->
+                                    scope.launch {
+                                        isAdLoading = false
+                                        if (ready) {
+                                            delay(500)
+                                            showRewardAdDialog = false
+                                            AdManager.showRewarded(activity) { success ->
+                                                if (success) {
+                                                    onDownload()
+                                                } else {
+                                                    context.makeToast(R.string.reward_not_completed)
+                                                }
+                                            }
+                                        } else {
+                                            // Fallback to Interstitial
+                                            showRewardAdDialog = false
+                                            AdManager.showInterstitial(activity) {
+                                                onDownload()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            showRewardAdDialog = false
+                            onDownload()
+                        }
+                    }
+                ) {
+                    Text(if (isAdLoading) "Loading..." else stringResource(R.string.watch_ad_proceed))
+                }
+            },
+            dismissButton = {
+                TextButton(enabled = !isAdLoading, onClick = { showRewardAdDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }

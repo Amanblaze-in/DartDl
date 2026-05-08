@@ -54,6 +54,8 @@ object DatabaseUtil {
     suspend fun insertCookieProfile(profile: CookieProfile) = dao.insertCookieProfile(profile)
 
     suspend fun updateCookieProfile(profile: CookieProfile) = dao.updateCookieProfile(profile)
+    
+    suspend fun clearAllCookieProfiles() = dao.deleteAllCookieProfiles()
 
     suspend fun getTemplateList() = dao.getTemplateList()
 

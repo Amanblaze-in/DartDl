@@ -146,7 +146,7 @@ fun findURLsFromString(input: String, firstMatchOnly: Boolean = false): List<Str
     return result
 }
 
-private fun isYouTubeUrl(url: String): Boolean {
+fun isYouTubeUrl(url: String): Boolean {
     val lowerUrl = url.lowercase()
     return lowerUrl.contains("youtube.com") || lowerUrl.contains("youtu.be")
 }

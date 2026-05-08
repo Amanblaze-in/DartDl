@@ -13,6 +13,7 @@ import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import android.os.IBinder
+import android.os.Process
 import android.util.Log
 import androidx.core.content.getSystemService
 import com.dartdl.app.download.DownloaderV2
@@ -22,6 +23,8 @@ import com.dartdl.app.ui.page.downloadv2.configure.DownloadDialogViewModel
 import com.dartdl.app.ui.page.settings.directory.Directory
 import com.dartdl.app.ui.page.settings.network.CookiesViewModel
 import com.dartdl.app.ui.page.videolist.VideoListViewModel
+import com.dartdl.app.ui.page.status.StatusViewModel
+
 import com.dartdl.app.util.AdManager
 import com.dartdl.app.util.AppOpenAdManager
 import com.dartdl.app.util.AUDIO_DIRECTORY
@@ -63,7 +66,6 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         MMKV.initialize(this)
-        AdManager.initialize(this)
         appOpenAdManager = AppOpenAdManager(this)
 
         startKoin {
@@ -76,6 +78,8 @@ class App : Application() {
                         viewModel { HomePageViewModel() }
                         viewModel { CookiesViewModel() }
                         viewModel { VideoListViewModel() }
+                        viewModel { StatusViewModel() }
+
                     }
             )
         }
@@ -104,6 +108,13 @@ class App : Application() {
                     FileUtil.writeContentToFile(it, getCookiesFile())
                 }
                 UpdateUtil.deleteOutdatedApk()
+                
+                // Silent Auto-Update yt-dlp
+                try {
+                    UpdateUtil.updateYtDlp()
+                } catch (e: Exception) {
+                    Log.e("App", "Failed to auto-update yt-dlp", e)
+                }
             }
             
             // Background Silent Update Check
@@ -125,30 +136,62 @@ class App : Application() {
             }
         }
 
-        videoDownloadDir = VIDEO_DIRECTORY.getString(getExternalDownloadDirectory().absolutePath)
+        val defaultDownloadDir = getExternalDownloadDirectory().absolutePath
+        videoDownloadDir = VIDEO_DIRECTORY.getString(defaultDownloadDir)
+        
+        // Safety check: If stored path is a content URI, try to use it safely or fallback to default
+        if (videoDownloadDir.startsWith("content://")) {
+            try {
+                // Check if we still have permission
+                val uri = Uri.parse(videoDownloadDir)
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            } catch (e: Exception) {
+                Log.w("App", "Lost permission to $videoDownloadDir, falling back to default")
+                videoDownloadDir = defaultDownloadDir
+            }
+        }
 
-        audioDownloadDir = AUDIO_DIRECTORY.getString(File(videoDownloadDir, "Audio").absolutePath)
+        // Fix for audio directory resolution
+        val audioPath = if (videoDownloadDir.startsWith("content://")) {
+            // If video is content URI, audio should also be handled separately or use default
+            AUDIO_DIRECTORY.getString(File(defaultDownloadDir, "Audio").absolutePath)
+        } else {
+            AUDIO_DIRECTORY.getString(File(videoDownloadDir, "Audio").absolutePath)
+        }
+        audioDownloadDir = audioPath
+        
         if (!PreferenceUtil.containsKey(COMMAND_DIRECTORY)) {
-            COMMAND_DIRECTORY.updateString(videoDownloadDir)
+            COMMAND_DIRECTORY.updateString(if (videoDownloadDir.startsWith("content://")) defaultDownloadDir else videoDownloadDir)
         }
         if (Build.VERSION.SDK_INT >= 26) NotificationUtil.createNotificationChannel()
 
         Thread.setDefaultUncaughtExceptionHandler { _, e -> startCrashReportActivity(e) }
     }
 
+    private var isCrashing = false
+
     private fun startCrashReportActivity(th: Throwable) {
+        if (isCrashing) return
+        isCrashing = true
+        
         th.printStackTrace()
-        startActivity(
-                Intent(this, CrashReportActivity::class.java)
-                        .setAction("$packageName.error_report")
-                        .apply {
-                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                            putExtra(
-                                    "error_report",
-                                    getVersionReport() + "\n" + th.stackTraceToString()
-                            )
-                        }
-        )
+        try {
+            val intent = Intent(this, CrashReportActivity::class.java).apply {
+                action = "$packageName.error_report"
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                putExtra("error_report", getVersionReport() + "\n" + th.stackTraceToString())
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            Log.e("App", "Failed to start CrashReportActivity", e)
+        } finally {
+            // Kill the process to prevent unstable state
+            android.os.Process.killProcess(android.os.Process.myPid())
+            System.exit(10)
+        }
     }
 
     companion object {
@@ -219,11 +262,23 @@ class App : Application() {
         fun updateDownloadDir(uri: Uri, directoryType: Directory) {
             when (directoryType) {
                 Directory.AUDIO -> {
+                    if (uri.toString().startsWith("content://")) {
+                        context.contentResolver?.takePersistableUriPermission(
+                            uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        )
+                    }
                     val path = if (Build.VERSION.SDK_INT >= 30) uri.toString() else FileUtil.getRealPath(uri)
                     audioDownloadDir = path
                     PreferenceUtil.encodeString(AUDIO_DIRECTORY, path)
                 }
                 Directory.VIDEO -> {
+                    if (uri.toString().startsWith("content://")) {
+                        context.contentResolver?.takePersistableUriPermission(
+                            uri,
+                            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                        )
+                    }
                     val path = if (Build.VERSION.SDK_INT >= 30) uri.toString() else FileUtil.getRealPath(uri)
                     videoDownloadDir = path
                     PreferenceUtil.encodeString(VIDEO_DIRECTORY, path)
@@ -264,7 +319,7 @@ class App : Application() {
                     .append("Telegram: https://t.me/Amanblaze\n")
                     .append("Device information: Android $release (API ${Build.VERSION.SDK_INT})\n")
                     .append("Supported ABIs: ${Build.SUPPORTED_ABIS.contentToString()}\n")
-                    .append("Yt-dlp version: ${YT_DLP_VERSION.getString()}\n")
+                    .append("Downloader version: ${YT_DLP_VERSION.getString()}\n")
                     .toString()
         }
 

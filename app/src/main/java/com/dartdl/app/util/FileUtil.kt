@@ -20,7 +20,7 @@ import com.dartdl.app.R
 import java.io.Closeable
 import java.io.File
 
-const val AUDIO_REGEX = "(mp3|aac|opus|m4a)$"
+const val AUDIO_REGEX = "(mp3|aac|opus|m4a|ogg|flac|wav)$"
 const val THUMBNAIL_REGEX = "\\.(jpg|png)$"
 const val SUBTITLE_REGEX = "\\.(lrc|vtt|srt|ass|json3|srv.|ttml)$"
 private const val PRIVATE_DIRECTORY_SUFFIX = ".DartDL"
@@ -40,6 +40,8 @@ object FileUtil {
                         createIntentForOpeningFile(this)?.run { 
                             val chooserIntent = Intent.createChooser(this, "Open with")
                             chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            chooserIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                            this.clipData?.let { chooserIntent.clipData = it }
                             context.startActivity(chooserIntent) 
                         } ?: throw Exception()
                     }
@@ -51,18 +53,36 @@ object FileUtil {
         val uri =
                 path.runCatching {
                     if (startsWith("content://")) {
-                        Uri.parse(this)
+                        val contentUri = Uri.parse(this)
+                        // If it's a MediaStore URI, try to get the real path to use FileProvider
+                        // This avoids SecurityException on Android 11+ when granting permissions to other apps
+                        if (contentUri.authority == "media") {
+                            getFilePathFromContentUri(contentUri)?.let { realPath ->
+                                if (java.io.File(realPath).exists()) {
+                                    return@runCatching FileProvider.getUriForFile(
+                                            context,
+                                            context.getFileProvider(),
+                                            java.io.File(realPath),
+                                    )
+                                }
+                            }
+                        }
+                        contentUri
                     } else {
-                        DocumentFile.fromSingleUri(context, Uri.parse(this)).run {
-                            if (this?.exists() == true) {
-                                this.uri
-                            } else if (File(this@runCatching).exists()) {
-                                FileProvider.getUriForFile(
-                                        context,
-                                        context.getFileProvider(),
-                                        File(this@runCatching),
-                                )
-                            } else null
+                        val file = java.io.File(this)
+                        if (file.exists()) {
+                            FileProvider.getUriForFile(
+                                    context,
+                                    context.getFileProvider(),
+                                    file,
+                            )
+                        } else {
+                            // Try to see if it's a URI string that isn't prefixed with content://
+                            DocumentFile.fromSingleUri(context, Uri.parse(this)).run {
+                                if (this?.exists() == true) {
+                                    this.uri
+                                } else null
+                            }
                         }
                     }
                 }
@@ -98,10 +118,12 @@ object FileUtil {
                         getMimeType(extension)
                     }
                     
+                    // Improved fallback: Only force video/* if we are reasonably sure it's not audio
                     if (mimeType == "*/*" || mimeType == "application/octet-stream") {
-                        mimeType = "video/*"
+                        mimeType = if (extension.matches(Regex(AUDIO_REGEX))) "audio/*" else "video/*"
                     }
                     setDataAndType(data, mimeType)
+                    clipData = ClipData.newRawUri(null, data)
                 }
             }
 
@@ -148,8 +170,8 @@ object FileUtil {
         // Only apply File-based name/extension checks to actual file paths, not content URIs.
         if (!path.startsWith("content://")) {
             val file = java.io.File(path)
-            if (file.name.startsWith(".") || file.extension.isBlank()) {
-                Log.w(TAG, "Attempted to share hidden/invalid file: $path")
+            if (file.name.startsWith(".")) {
+                Log.w(TAG, "Attempted to share hidden file: $path")
                 return null
             }
         }
@@ -157,8 +179,10 @@ object FileUtil {
         if (path.startsWith("content://")) {
             val docFile = DocumentFile.fromSingleUri(context, Uri.parse(path))
             val name = docFile?.name ?: ""
-            if (name.startsWith(".")) {
-                Log.w(TAG, "Attempted to share hidden content URI: $path")
+            // Check for hidden files or common renamed markers like _nomedia
+            // ONLY block hidden files (starting with dot) or exact .nomedia file
+            if (name.startsWith(".") || name.equals(".nomedia", ignoreCase = true)) {
+                Log.w(TAG, "Attempted to share hidden content URI or .nomedia file: $path")
                 return null
             }
         }
@@ -177,9 +201,12 @@ object FileUtil {
             } else {
                 getMimeType(extension)
             }
+            // CRITICAL: Save the data URI BEFORE calling setType(), because
+            // Intent.setType() internally calls setData(null), clearing it.
+            val fileUri = data
             type = mimeType
-            putExtra(Intent.EXTRA_STREAM, data)
-            clipData = ClipData(null, arrayOf(mimeType), ClipData.Item(data))
+            putExtra(Intent.EXTRA_STREAM, fileUri)
+            clipData = ClipData.newRawUri(null, fileUri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
     }
@@ -226,7 +253,7 @@ object FileUtil {
     fun scanFileToMediaLibraryPostDownload(title: String, downloadDir: String): List<String> =
             File(downloadDir)
                     .walkTopDown()
-                    .filter { it.isFile && it.absolutePath.contains(title) }
+                    .filter { it.isFile && !it.name.startsWith(".") && it.name != ".nomedia" && it.absolutePath.contains(title) }
                     .map { it.absolutePath }
                     .toMutableList()
                     .apply {
@@ -262,7 +289,7 @@ object FileUtil {
                     )
                 }
                 walkTopDown().forEach {
-                    if (it.isDirectory) return@forEach
+                    if (it.isDirectory || it.name.startsWith(".") || it.name == ".nomedia") return@forEach
                     val mimeType = getMimeType(it.extension)
                     val destUri = DocumentsContract.createDocument(
                         context.contentResolver,
@@ -281,7 +308,7 @@ object FileUtil {
             } else {
                 // Standard file path (MediaStore fallback for Play Store compliance)
                 walkTopDown().forEach {
-                    if (it.isDirectory) return@forEach
+                    if (it.isDirectory || it.name.startsWith(".") || it.name == ".nomedia") return@forEach
                     val savedUri = saveToMediaStore(it, destinationUri)
                     if (savedUri != null) {
                         uriList.add(savedUri.toString())
@@ -432,6 +459,21 @@ object FileUtil {
                     .onFailure { it.printStackTrace() }
 
     fun writeContentToFile(content: String, file: File): File = file.apply { writeText(content) }
+
+    private fun getFilePathFromContentUri(uri: Uri): String? {
+        return try {
+            val projection = arrayOf(MediaStore.MediaColumns.DATA)
+            context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val columnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA)
+                    cursor.getString(columnIndex)
+                } else null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get path from MediaStore URI: $uri", e)
+            null
+        }
+    }
 
     fun getRealPath(treeUri: Uri): String {
         val path: String = treeUri.path.toString()

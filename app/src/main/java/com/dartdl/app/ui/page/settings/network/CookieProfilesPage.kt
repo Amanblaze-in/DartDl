@@ -125,21 +125,12 @@ fun CookieProfilePage(
     var showHelpDialog by remember { mutableStateOf(false) }
     val view = LocalView.current
 
-    var cookieList by remember { mutableStateOf(listOf<Cookie>()) }
-
-    var shouldUpdateCookies by remember { mutableStateOf(false) }
-
+    val cookieList by cookiesViewModel.rawCookies.collectAsStateWithLifecycle()
     var showEditDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    DisposableEffect(shouldUpdateCookies) {
-        scope.launch(Dispatchers.IO) {
-            DownloadUtil.getCookieListFromDatabase().getOrNull()?.let {
-                cookieList = it
-                FileUtil.writeContentToFile(it.toCookiesFileContent(), context.getCookiesFile())
-            }
-        }
-        onDispose { shouldUpdateCookies = false }
+    LaunchedEffect(Unit) {
+        cookiesViewModel.refreshRawCookies()
     }
 
     val exportLauncher =
@@ -294,7 +285,6 @@ fun CookieProfilePage(
             },
         ) {
             showEditDialog = false
-            shouldUpdateCookies = true
         }
     }
 
@@ -311,9 +301,7 @@ fun CookieProfilePage(
     if (showClearCookieDialog) {
         ClearCookiesDialog(onDismissRequest = { showClearCookieDialog = false }) {
             view.slightHapticFeedback()
-            scope
-                .launch(Dispatchers.IO) { CookieManager.getInstance().removeAllCookies(null) }
-                .invokeOnCompletion { shouldUpdateCookies = true }
+            cookiesViewModel.clearAll()
         }
     }
 }
@@ -351,7 +339,12 @@ fun CookieGeneratorDialog(
                 )
 
                 TextButtonWithIcon(
-                    onClick = { navigateToCookieGeneratorPage() },
+                    onClick = { 
+                        if (url.isBlank()) {
+                            cookiesViewModel.updateUrl("https://www.google.com")
+                        }
+                        navigateToCookieGeneratorPage() 
+                    },
                     icon = Icons.Outlined.GeneratingTokens,
                     text = stringResource(id = R.string.generate_new_cookies),
                 )

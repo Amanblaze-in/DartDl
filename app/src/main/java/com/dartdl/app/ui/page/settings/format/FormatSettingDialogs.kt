@@ -203,29 +203,23 @@ fun VideoQuickSettingsDialog(
         },
         text = {
             Column {
-                LazyColumn() {
-                    item { DialogSubtitle(text = stringResource(R.string.video_format_preference)) }
-                    for (i in listOf(FORMAT_COMPATIBILITY, FORMAT_QUALITY)) {
-                        item {
-                            DialogSingleChoiceItemVariant(
-                                modifier = Modifier,
-                                title = PreferenceStrings.getVideoFormatLabel(i),
-                                desc = PreferenceStrings.getVideoFormatDescComp(i),
-                                selected = videoFormatPreference == i,
-                            ) {
-                                onFormatSelect(i)
-                            }
-                        }
-                    }
-                    item { DialogSubtitle(text = stringResource(R.string.video_resolution)) }
-                    item {
-                        VideoResolutionSelectField(
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            videoResolution = videoResolution,
-                            onSelect = onResolutionSelect,
-                        )
+                DialogSubtitle(text = stringResource(R.string.video_format_preference))
+                for (i in listOf(FORMAT_COMPATIBILITY, FORMAT_QUALITY)) {
+                    DialogSingleChoiceItemVariant(
+                        modifier = Modifier,
+                        title = PreferenceStrings.getVideoFormatLabel(i),
+                        desc = PreferenceStrings.getVideoFormatDescComp(i),
+                        selected = videoFormatPreference == i,
+                    ) {
+                        onFormatSelect(i)
                     }
                 }
+                DialogSubtitle(text = stringResource(R.string.video_resolution))
+                VideoResolutionSelectField(
+                    modifier = Modifier.padding(horizontal = 12.dp),
+                    videoResolution = videoResolution,
+                    onSelect = onResolutionSelect,
+                )
             }
         },
     )
@@ -402,7 +396,7 @@ fun AudioQuickSettingsDialog(
                 label = "",
             ) {
                 if (!it) {
-                    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    Column(modifier = Modifier) {
                         DialogSubtitle(text = stringResource(R.string.presets))
                         DialogSingleChoiceItemVariant(
                             title = stringResource(R.string.best_quality),
@@ -436,8 +430,7 @@ fun AudioQuickSettingsDialog(
                 } else {
                     Column(
                         modifier =
-                            Modifier.verticalScroll(rememberScrollState())
-                                .padding(horizontal = 16.dp)
+                            Modifier.padding(horizontal = 16.dp)
                     ) {
                         AudioFormatSelectField(
                             convertAudio = convertAudio,

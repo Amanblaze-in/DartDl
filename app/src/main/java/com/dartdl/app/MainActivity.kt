@@ -17,8 +17,11 @@ import com.dartdl.app.ui.page.downloadv2.configure.DownloadDialogViewModel
 import com.dartdl.app.ui.theme.DartDLTheme
 import com.dartdl.app.util.AdManager
 import com.dartdl.app.util.PreferenceUtil
+import com.dartdl.app.util.PreferenceUtil.getInt
+import com.dartdl.app.util.PreferenceUtil.updateInt
 import com.dartdl.app.util.matchUrlFromSharedText
 import com.dartdl.app.util.setLanguage
+import com.dartdl.app.util.makeToast
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.compose.KoinContext
 
@@ -35,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         }
         enableEdgeToEdge()
 
-        context = this.baseContext
+        context = this.applicationContext
         setContent {
             KoinContext {
                 val windowSizeClass = calculateWindowSizeClass(this)
@@ -62,13 +65,87 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Preload ads
-        AdManager.loadInterstitial(this)
-        AdManager.loadRewarded(this)
+        // Initialize UMP and Ads with a small delay to ensure UI is ready
+        window.decorView.post {
+            AdManager.gatherConsentAndInitialize(this)
+        }
+
+        checkForInAppUpdate()
+        
+        // Trigger In-App Review after a short delay if criteria met
+        window.decorView.postDelayed({
+            checkAndPromptReview()
+        }, 5000)
     }
 
-    fun showInterstitialAd(onDismissed: () -> Unit = {}) {
-        AdManager.showInterstitial(this, onDismissed = onDismissed)
+    private val appUpdateManager by lazy { com.google.android.play.core.appupdate.AppUpdateManagerFactory.create(this) }
+
+    private fun checkForInAppUpdate() {
+        val appUpdateInfoTask = appUpdateManager.appUpdateInfo
+        appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
+            if (appUpdateInfo.updateAvailability() == com.google.android.play.core.install.model.UpdateAvailability.UPDATE_AVAILABLE) {
+                // Prioritize IMMEDIATE update for critical versions, otherwise FLEXIBLE
+                if (appUpdateInfo.isUpdateTypeAllowed(com.google.android.play.core.install.model.AppUpdateType.IMMEDIATE)) {
+                    appUpdateManager.startUpdateFlowForResult(
+                        appUpdateInfo,
+                        com.google.android.play.core.install.model.AppUpdateType.IMMEDIATE,
+                        this,
+                        123
+                    )
+                } else if (appUpdateInfo.isUpdateTypeAllowed(com.google.android.play.core.install.model.AppUpdateType.FLEXIBLE)) {
+                    appUpdateManager.startUpdateFlowForResult(
+                        appUpdateInfo,
+                        com.google.android.play.core.install.model.AppUpdateType.FLEXIBLE,
+                        this,
+                        123
+                    )
+                }
+            }
+        }
+        appUpdateManager.registerListener { state ->
+            if (state.installStatus() == com.google.android.play.core.install.model.InstallStatus.DOWNLOADED) {
+                this.makeToast("Update downloaded. Restarting to install...")
+                appUpdateManager.completeUpdate()
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        appUpdateManager.appUpdateInfo.addOnSuccessListener { appUpdateInfo ->
+            if (appUpdateInfo.updateAvailability() == com.google.android.play.core.install.model.UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                appUpdateManager.startUpdateFlowForResult(
+                    appUpdateInfo,
+                    com.google.android.play.core.install.model.AppUpdateType.IMMEDIATE,
+                    this,
+                    123
+                )
+            }
+            if (appUpdateInfo.installStatus() == com.google.android.play.core.install.model.InstallStatus.DOWNLOADED) {
+                appUpdateManager.completeUpdate()
+            }
+        }
+    }
+
+    private fun checkAndPromptReview() {
+        // Show review prompt every 10 app launches (simple logic)
+        val launches: Int = "app_launches".getInt(0) + 1
+        "app_launches".updateInt(launches)
+        
+        if (launches % 10 == 0) {
+            promptInAppReview()
+        }
+    }
+
+    fun promptInAppReview() {
+        val reviewManager = com.google.android.play.core.review.ReviewManagerFactory.create(this)
+        val request = reviewManager.requestReviewFlow()
+        request.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val reviewInfo = task.result
+                reviewManager.launchReviewFlow(this, reviewInfo)
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

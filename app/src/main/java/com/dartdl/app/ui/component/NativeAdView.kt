@@ -58,8 +58,7 @@ fun NativeAdView(modifier: Modifier = Modifier) {
         ) {
             AndroidView(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
+                    .fillMaxWidth(),
                 factory = { ctx ->
                     val adView = LayoutInflater.from(ctx)
                         .inflate(R.layout.ad_unified, null) as NativeAdView
@@ -120,7 +119,7 @@ fun NativeAdView(modifier: Modifier = Modifier) {
                         if (ad.starRating == null) {
                             adView.starRatingView?.visibility = View.INVISIBLE
                         } else {
-                            (adView.starRatingView as RatingBar).rating = ad.starRating!!.toFloat()
+                            (adView.starRatingView as? RatingBar)?.rating = ad.starRating?.toFloat() ?: 0f
                             adView.starRatingView?.visibility = View.VISIBLE
                         }
 

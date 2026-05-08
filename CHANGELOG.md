@@ -5,7 +5,21 @@ All notable changes (starting from v1.7.3) to stable releases will be documented
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.0.2][2.0.2] - 2026-05-04
+
+### Added
+- Enhanced Ad-Monetization UX with premium "Loading Ad..." progress indicators.
+- Implemented safety timeouts (10s for Rewarded, 8s for Interstitial) to prevent UI hangs on slow networks.
+- Improved Interstitial ad reliability with callback queuing and reduced trigger interval (15s).
+
+### Fixed
+- Fixed critical startup crash loop caused by invalid format strings.
+- Resolved "History Loss" bug where completed downloads would disappear from the app after a restart.
+- Fixed Instagram "Rate Limit Reached" error by reusing fetched VideoInfo metadata.
+- Resolved numerous compilation lint errors and replaced deprecated components (e.g., PrimaryTabRow to TabRow).
+
 ## [v2.0.1][2.0.1] - 2026-04-24
+
 
 ### Added
 - Rebranded the project to DartDL (forked from Seal).

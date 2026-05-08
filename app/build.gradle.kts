@@ -198,6 +198,17 @@ dependencies {
 
     implementation(libs.bundles.core)
     implementation("com.google.android.gms:play-services-ads:23.6.0")
+    implementation("com.google.android.ump:user-messaging-platform:3.1.0")
+
+    // Google Play Core (In-App Updates & Reviews)
+    implementation("com.google.android.play:app-update-ktx:2.1.0")
+    implementation("com.google.android.play:review-ktx:2.0.1")
+
+    // Mediation Adapters
+    implementation("com.google.ads.mediation:facebook:6.19.0.0")
+    implementation("com.facebook.android:audience-network-sdk:6.19.0")
+    implementation("com.google.ads.mediation:unity:4.13.2.0")
+    implementation("com.unity3d.ads:unity-ads:4.13.2")
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.lifecycle.process)
@@ -209,6 +220,7 @@ dependencies {
     implementation(libs.bundles.accompanist)
 
     implementation(libs.coil.kt.compose)
+    implementation(libs.coil.video)
 
     implementation(libs.kotlinx.serialization.json)
 

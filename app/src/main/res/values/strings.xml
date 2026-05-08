@@ -97,6 +97,9 @@
     <string name="download_desc">Then click \"Download\" after adjusting its settings.
     </string>
     <string name="download_history_desc">Check and manage in-app downloads, including videos and audio files.</string>
+    <string name="watch_ad_to_proceed">Watch a short ad to proceed with the download.</string>
+    <string name="watch_ad_proceed">Watch Ad &amp; Proceed</string>
+
     <string name="check_download_settings_desc">Take a look at the download settings and make sure
         you have the latest version of yt-dlp before using it.
     </string>
@@ -235,7 +238,7 @@
     <string name="custom_command_enabled_hint">Some options are unavailable when using custom command</string>
     <string name="how_does_it_work">How does it work?</string>
     <string name="cookies_usage_msg">Downloading from some sites requires account authentication information. Click \"Generate new cookies\", enter the URL of the website and then log in with your account in the browser page, the app will generate it for you.</string>
-    <string name="custom_command_usage_msg">yt-dlp is a powerful command-line tool for downloading videos. DartDL makes it easier to use yt-dlp by providing an intuitive GUI, presets for common commands, and other additional features.\n\nFor advanced usage of yt-dlp, DartDL allows you to create, save and execute custom command templates directly, just like in a terminal.\n\nWhen using custom commands, most of the GUI options and features would be disabled.</string>
+    <string name="custom_command_usage_msg">This app uses a powerful command-line engine for downloading videos. DartDL makes it easier to use by providing an intuitive GUI, presets for common commands, and other additional features.\n\nFor advanced usage, DartDL allows you to create, save and execute custom command templates directly, just like in a terminal.\n\nWhen using custom commands, most of the GUI options and features would be disabled.</string>
     <string name="telegram_channel">Telegram channel</string>
 
     <string name="sdcard_directory">SD card folder</string>
@@ -465,5 +468,23 @@
     <string name="navigate_back">Back</string>
     <string name="license">License</string>
     <string name="license_desc">GNU General Public License v3.0</string>
+    <string name="clear_all">Clear all</string>
+    <string name="clear_completed">Clear completed</string>
+    <string name="restart_failed">Restart failed</string>
+    <string name="clear_all_confirmation">Are you sure you want to remove all tasks from the queue?</string>
+    <string name="video_audio_link">Video &amp; audio link</string>
     <string name="seal">Seal</string>
+    <string name="video_downloader">DartDL</string>
+    <string name="one_click_fast_download">One-click Fast Download</string>
+    <string name="opus_vs_mp3_title">Why Opus is better than MP3?</string>
+    <string name="opus_vs_mp3_content">Opus is a modern, open-source audio codec used natively by many streaming platforms. It provides better sound quality than MP3 while being 50-60% smaller in file size.\n\nWhen you download MP3, the app often has to convert the native high-quality stream to MP3, which results in quality loss and larger files. For the best experience, we recommend downloading Opus directly.</string>
+    <string name="downloads_count_format">%1$s, %2$s</string>
+    <string name="how_to_use">How to use</string>
+    <string name="user_guide_content">Copy a video link from any app.\nClick the \"Paste\" button in DartDL to load the link.\nClick \"Download\" and choose your preferred quality.\nCheck your progress in the Downloads tab.</string>
+    <string name="high_res_reward_title">Unlock High Quality</string>
+    <string name="high_res_reward_msg">Watch a short video to download in High Quality (720p, 1080p, 4K). Your support keeps DartDL free!</string>
+    <string name="unlock_now">Unlock now</string>
+    <string name="loading_ad">Loading ad... please wait</string>
+    <string name="aso_short_description">Fast 4K Video &amp; MP3 Downloader. Safe, Private &amp; Unlimited Downloads.</string>
+    <string name="aso_full_description"><b>DartDL: The Ultimate Fast Video &amp; MP3 Downloader</b>\n\nExperience the fastest way to save high-quality content for offline viewing. DartDL is a powerful, secure, and reliable <b>HD Video Downloader</b> and <b>MP3 Downloader</b> designed for speed and simplicity. Whether you want to save your favorite social media clips or download music for the road, DartDL handles it all with one tap.\n\n🚀 <b>ULTIMATE FEATURES</b>\n• <b>High-Speed Downloading:</b> Multi-threaded engine for maximum speed.\n• <b>4K &amp; HD Video Support:</b> Download in crystal clear 720p, 1080p, and 4K resolutions.\n• <b>Smart Link Detection:</b> Auto-detects links and pastes them instantly from your clipboard.\n• <b>Built-in Private Browser:</b> Search and download videos directly without leaving the app.\n• <b>MP3 &amp; Audio Extractor:</b> Convert and save any video as high-quality audio.\n• <b>Multi-Format Support:</b> MP4, MP3, M4A, MOV, AVI, WMV, and more.\n• <b>Powerful Download Manager:</b> Pause, resume, and manage multiple downloads simultaneously.\n• <b>Background Downloads:</b> Keep downloading even when the app is minimized.\n\n⚡ <b>ADVANCED DOWNLOAD ENGINE</b>\n• <b>No External Apps Needed:</b> Integrated high-speed engine for seamless performance.\n• <b>Batch Downloads:</b> Save entire playlists or multiple links at once.\n• <b>Resume Capability:</b> Automatically resume failed or interrupted downloads.\n• <b>Aria2c Support:</b> Optimized for ultra-fast, multi-connection file grabbing.\n\n🎧 <b>PRO MEDIA TOOLS</b>\n• <b>Subtitle Downloader:</b> Save auto-generated and translated captions for any video.\n• <b>Smart Ad-Skipping:</b> Integrated SponsorBlock to skip annoying segments.\n• <b>Custom Organization:</b> Use naming templates to keep your media library tidy.\n\n🔒 <b>SAFE, PRIVATE &amp; SECURE</b>\n• <b>No Login Required:</b> Use all features anonymously without creating an account.\n• <b>Private Downloads:</b> Your files stay local and secure on your device.\n• <b>Cookie Support:</b> Access and download content from your favorite sites securely.\n• <b>Battery Efficient:</b> Optimized to use minimal resources and battery life.\n\n📥 <b>HOW TO USE DARTDL</b>\n1. <b>Copy</b> the video or music link from any app.\n2. <b>Paste</b> the URL into DartDL.\n3. <b>Select</b> your preferred format (MP4/MP3) and quality (HD/4K).\n4. <b>Download</b> and enjoy your media offline, anywhere, anytime!\n\n⚠️ <b>IMPORTANT NOTICE</b>\nDartDL does not support downloading from copyrighted platforms due to their terms of service. Users are solely responsible for the content they download.\n\nDownload <b>DartDL</b> today and get the most powerful <b>Free Video Downloader</b> for your Android device!</string>
 </resources>

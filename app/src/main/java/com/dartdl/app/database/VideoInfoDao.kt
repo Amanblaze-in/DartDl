@@ -73,6 +73,9 @@ interface VideoInfoDao {
     @Delete suspend fun deleteCookieProfile(cookieProfile: CookieProfile)
 
     @Insert suspend fun insertCookieProfile(cookieProfile: CookieProfile)
+    
+    @Query("DELETE FROM CookieProfile")
+    suspend fun deleteAllCookieProfiles()
 
     @Query("delete from CommandTemplate where id=:id") suspend fun deleteTemplateById(id: Int)
 

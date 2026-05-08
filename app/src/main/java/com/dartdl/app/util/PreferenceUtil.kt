@@ -223,6 +223,7 @@ private val StringPreferenceDefaults =
             NOTIFICATION to true,
             EMBED_METADATA to true,
             USE_CUSTOM_AUDIO_PRESET to false,
+            RESTRICT_FILENAMES to true,
         )
 
 private val IntPreferenceDefaults =
@@ -306,6 +307,8 @@ object PreferenceUtil {
         }
     }
 
+    fun getDownloadDirectory(): String = VIDEO_DIRECTORY.getString(FileUtil.getExternalDownloadDirectory().absolutePath)
+
     fun updateDownloadType(type: DownloadType) = DOWNLOAD_TYPE.updateInt(type.ordinal)
 
     fun isNetworkAvailableForDownload() =
@@ -366,15 +369,16 @@ object PreferenceUtil {
         get() = find { it.id == TEMPLATE_ID.getInt() }
 
     fun getTemplate(): CommandTemplate {
-        var template: CommandTemplate? = null
-        runBlocking {
-            for (cnt in 1..5) {
-                template = templateListStateFlow.value.selectedTemplate
-                if (template != null) return@runBlocking
-                delay(100)
-            }
-        }
-        return template ?: throw NoSuchElementException()
+        // Try to get the selected template from the current state
+        val template = templateListStateFlow.value.selectedTemplate
+        if (template != null) return template
+
+        // If not found in flow, try to find a default or just return a basic one to avoid crash
+        return templateListStateFlow.value.firstOrNull() ?: CommandTemplate(
+            id = 0,
+            name = "Default",
+            template = TEMPLATE_EXAMPLE
+        )
     }
 
     suspend fun initializeTemplateSample() {
@@ -484,6 +488,15 @@ object PreferenceUtil {
             updateLastHighResDate(today)
             updateHighResDownloadCount(0)
         }
+    }
+
+    private const val SUCCESSFUL_DOWNLOADS_COUNT = "successful_downloads_count"
+
+    fun getSuccessfulDownloadsCount(): Int = kv.decodeInt(SUCCESSFUL_DOWNLOADS_COUNT, 0)
+
+    fun incrementSuccessfulDownloadsCount() {
+        val current = getSuccessfulDownloadsCount()
+        kv.encode(SUCCESSFUL_DOWNLOADS_COUNT, current + 1)
     }
 
     private const val TAG = "PreferenceUtil"

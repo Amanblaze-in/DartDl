@@ -376,46 +376,46 @@ fun VideoListPage(
                 exit = shrinkVertically(),
             ) {
                 BottomAppBar(modifier = Modifier) {
-                    val selectAllText = stringResource(R.string.select_all)
-                    TriStateCheckbox(
-                        modifier = Modifier.semantics { this.contentDescription = selectAllText },
-                        state = checkBoxState,
-                        onClick = {
-                            view.slightHapticFeedback()
-                            when (checkBoxState) {
-                                ToggleableState.On -> selectedItemIds.clear()
-                                else -> {
-                                    for (item in videoList) {
-                                        if (
-                                            !selectedItemIds.contains(item.id) &&
-                                                item.filterSort(viewState, filterSet)
-                                        ) {
-                                            selectedItemIds.add(item.id)
+                        val selectAllText = stringResource(R.string.select_all)
+                        TriStateCheckbox(
+                            modifier = Modifier.semantics { this.contentDescription = selectAllText },
+                            state = checkBoxState,
+                            onClick = {
+                                view.slightHapticFeedback()
+                                when (checkBoxState) {
+                                    ToggleableState.On -> selectedItemIds.clear()
+                                    else -> {
+                                        for (item in videoList) {
+                                            if (
+                                                !selectedItemIds.contains(item.id) &&
+                                                    item.filterSort(viewState, filterSet)
+                                            ) {
+                                                selectedItemIds.add(item.id)
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        },
-                    )
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text =
-                            stringResource(R.string.multiselect_item_count)
-                                .format(selectedVideoCount.intValue, selectedAudioCount.intValue),
-                        style = MaterialTheme.typography.labelLarge,
-                    )
-                    IconButton(
-                        onClick = {
-                            view.slightHapticFeedback()
-                            showRemoveMultipleItemsDialog = true
-                        },
-                        enabled = selectedItemIds.isNotEmpty(),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.DeleteSweep,
-                            contentDescription = stringResource(id = R.string.remove),
+                            },
                         )
-                    }
+                        Text(
+                            modifier = Modifier.weight(1f),
+                            text =
+                                stringResource(R.string.multiselect_item_count)
+                                    .format(selectedVideoCount.intValue, selectedAudioCount.intValue),
+                            style = MaterialTheme.typography.labelLarge,
+                        )
+                        IconButton(
+                            onClick = {
+                                view.slightHapticFeedback()
+                                showRemoveMultipleItemsDialog = true
+                            },
+                            enabled = selectedItemIds.isNotEmpty(),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.DeleteSweep,
+                                contentDescription = stringResource(id = R.string.remove),
+                            )
+                        }
                 }
             }
         },

@@ -74,6 +74,7 @@ import com.dartdl.app.ui.common.LocalDarkTheme
 import com.dartdl.app.ui.common.LocalFixedColorRoles
 import com.dartdl.app.ui.common.motion.materialSharedAxisY
 import com.dartdl.app.ui.component.GreenTonalPalettes
+import com.dartdl.app.ui.page.downloadv2.component.UiAction
 import com.dartdl.app.ui.theme.DartDLTheme
 import com.dartdl.app.util.toDurationText
 import com.dartdl.app.util.toFileSizeText
@@ -534,7 +535,7 @@ fun ActionButton(
         }
         is Completed -> {
             PlayVideoButton(modifier = modifier) {
-                onActionPost(UiAction.OpenFile(downloadState.filePath))
+                onActionPost(UiAction.OpenExternalPlayer(downloadState.filePath))
             }
         }
         is FetchingInfo,

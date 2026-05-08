@@ -11,6 +11,7 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.appopen.AppOpenAd
+import com.dartdl.app.CrashReportActivity
 import java.util.Date
 
 /**
@@ -24,6 +25,7 @@ class AppOpenAdManager(private val myApplication: Application) :
     private var isShowingAd = false
     private var loadTime: Long = 0
     private var currentActivity: Activity? = null
+    private var isFirstLaunch = true
 
     init {
         myApplication.registerActivityLifecycleCallbacks(this)
@@ -34,6 +36,7 @@ class AppOpenAdManager(private val myApplication: Application) :
      * Request an ad.
      */
     fun fetchAd() {
+        if (!AdManager.isInitialized) return
         if (isAdAvailable()) return
 
         isLoadingAd = true
@@ -77,12 +80,13 @@ class AppOpenAdManager(private val myApplication: Application) :
     fun showAdIfAvailable(activity: Activity) {
         if (isShowingAd) return
 
-        if (!isAdAvailable()) {
+        val currentAd = appOpenAd
+        if (currentAd == null) {
             fetchAd()
             return
         }
 
-        appOpenAd!!.fullScreenContentCallback = object : FullScreenContentCallback() {
+        currentAd.fullScreenContentCallback = object : FullScreenContentCallback() {
             override fun onAdDismissedFullScreenContent() {
                 appOpenAd = null
                 isShowingAd = false
@@ -99,13 +103,28 @@ class AppOpenAdManager(private val myApplication: Application) :
                 isShowingAd = true
             }
         }
-        appOpenAd!!.show(activity)
+        try {
+            currentAd.show(activity)
+        } catch (e: Exception) {
+            Log.e(LOG_TAG, "Failed to show App Open Ad", e)
+            appOpenAd = null
+            isShowingAd = false
+            fetchAd()
+        }
     }
 
     override fun onStart(owner: LifecycleOwner) {
         super.onStart(owner)
-        currentActivity?.let {
-            showAdIfAvailable(it)
+        if (isFirstLaunch) {
+            Log.d(LOG_TAG, "First launch detected, skipping app open ad")
+            isFirstLaunch = false
+            return
+        }
+        
+        // Additional safety: ensure we have an activity and it's not the SplashActivity
+        val activity = currentActivity
+        if (activity != null && activity !is CrashReportActivity) {
+            showAdIfAvailable(activity)
         }
     }
 

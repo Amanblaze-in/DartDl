@@ -2,6 +2,8 @@ package com.dartdl.app.ui.component
 
 import android.content.res.Configuration
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,10 +13,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.HelpOutline
-import androidx.compose.material.icons.outlined.SignalCellularConnectedNoInternet4Bar
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.BasicAlertDialog
@@ -33,13 +35,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import com.dartdl.app.R
 import com.dartdl.app.ui.theme.DartDLTheme
-import com.dartdl.app.ui.theme.FixedAccentColors
 
 private val DialogVerticalPadding = PaddingValues(vertical = 24.dp)
 private val IconPadding = PaddingValues(bottom = 16.dp)
@@ -55,13 +54,13 @@ fun HelpDialog(
     onDismissRequest: () -> Unit = {},
     dismissButton: @Composable (() -> Unit)? = null,
     confirmButton: @Composable () -> Unit = {
-        ConfirmButton(text = stringResource(id = R.string.got_it)) { onDismissRequest() }
+        ConfirmButton(text = stringResource(id = com.dartdl.app.R.string.got_it)) { onDismissRequest() }
     },
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        title = { Text(text = stringResource(id = R.string.how_does_it_work)) },
-        icon = { Icon(Icons.Outlined.HelpOutline, null) },
+        title = { Text(text = stringResource(id = com.dartdl.app.R.string.how_does_it_work)) },
+        icon = { Icon(Icons.Outlined.Info, null) },
         text = { Text(text = text) },
         confirmButton = confirmButton,
         dismissButton = dismissButton,
@@ -113,7 +112,7 @@ fun DartDLDialog(
                     CompositionLocalProvider(LocalContentColor provides titleContentColor) {
                         val textStyle =
                             MaterialTheme.typography.headlineSmall.copy(
-                                textAlign = TextAlign.Center
+                                textAlign = if (icon == null) TextAlign.Start else TextAlign.Center
                             )
                         ProvideTextStyle(textStyle) {
                             Box(
@@ -138,8 +137,8 @@ fun DartDLDialog(
                         val textStyle = MaterialTheme.typography.bodyMedium
                         ProvideTextStyle(textStyle) {
                             Box(
-                                Modifier.weight(weight = 1f, fill = false)
-                                    .padding(TextPadding)
+                                Modifier.padding(TextPadding)
+                                    .padding(DialogHorizontalPadding)
                                     .align(Alignment.Start)
                             ) {
                                 text()
@@ -174,53 +173,14 @@ fun DartDLDialogButtonVariant(
     Box() {
         Surface(
             modifier = modifier.clickable(onClick = onClick).fillMaxWidth().height(48.dp),
-            color = FixedAccentColors.secondaryFixed,
+            color = MaterialTheme.colorScheme.secondaryContainer,
             shape = shape,
         ) {}
         Text(
             text = text,
             style = MaterialTheme.typography.labelLarge,
-            color = FixedAccentColors.onSecondaryFixed,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
             modifier = Modifier.align(Alignment.Center),
-        )
-    }
-}
-
-@Preview(name = "dark", uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Preview(name = "light", uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Composable
-private fun ButtonVariantPreview() {
-    DartDLTheme {
-        DartDLDialogVariant(
-            onDismissRequest = {},
-            modifier = Modifier,
-            icon = {
-                Icon(
-                    imageVector = Icons.Outlined.SignalCellularConnectedNoInternet4Bar,
-                    contentDescription = null,
-                )
-            },
-            title = {
-                Text(
-                    text = "Download with cellular network?",
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center,
-                )
-            },
-            buttons = {
-                DartDLDialogButtonVariant(
-                    text = stringResource(R.string.allow_always),
-                    shape = TopButtonShape,
-                ) {}
-                DartDLDialogButtonVariant(
-                    text = stringResource(id = R.string.allow_once),
-                    shape = MiddleButtonShape,
-                ) {}
-                DartDLDialogButtonVariant(
-                    text = stringResource(R.string.dont_allow),
-                    shape = BottomButtonShape,
-                ) {}
-            },
         )
     }
 }
@@ -272,7 +232,7 @@ fun DartDLDialogVariant(
                 title?.let {
                     CompositionLocalProvider(LocalContentColor provides titleContentColor) {
                         val textStyle = MaterialTheme.typography.headlineSmall
-                        ProvideTextStyle(textStyle.copy(textAlign = TextAlign.Center)) {
+                        ProvideTextStyle(textStyle.copy(textAlign = if (icon == null) TextAlign.Start else TextAlign.Center)) {
                             Box(
                                 // Align the title to the center when an icon is present.
                                 Modifier.padding(TitlePadding)
@@ -295,8 +255,8 @@ fun DartDLDialogVariant(
                         val textStyle = MaterialTheme.typography.bodyMedium
                         ProvideTextStyle(textStyle) {
                             Box(
-                                Modifier.weight(weight = 1f, fill = false)
-                                    .padding(TextPadding)
+                                Modifier.padding(TextPadding)
+                                    .padding(DialogHorizontalPadding)
                                     .align(Alignment.Start)
                             ) {
                                 text()

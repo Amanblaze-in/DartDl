@@ -66,6 +66,7 @@ import com.dartdl.app.ui.common.LocalFixedColorRoles
 import com.dartdl.app.ui.component.ActionSheetItem
 import com.dartdl.app.ui.component.ActionSheetPrimaryButton
 import com.dartdl.app.ui.component.DartDLModalBottomSheet
+import com.dartdl.app.ui.page.downloadv2.component.UiAction
 import com.dartdl.app.ui.page.downloadv2.configure.PreferencesMock
 import com.dartdl.app.ui.theme.DartDLTheme
 import com.dartdl.app.ui.theme.ErrorTonalPalettes
@@ -311,12 +312,6 @@ fun LazyListScope.ActionButtons(
         is Completed -> {
             item(key = "PlayButton") {
                 PlayButton(modifier = Modifier.animateItem()) {
-                    onActionPost(task, UiAction.OpenFile(downloadState.filePath))
-                    onDismissRequest()
-                }
-            }
-            item(key = "ExternalPlayerButton") {
-                ExternalPlayerButton(modifier = Modifier.animateItem()) {
                     onActionPost(task, UiAction.OpenExternalPlayer(downloadState.filePath))
                     onDismissRequest()
                 }

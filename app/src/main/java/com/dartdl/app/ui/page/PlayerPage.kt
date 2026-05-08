@@ -8,35 +8,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.PauseCircle
 import androidx.compose.material.icons.rounded.PlayCircle
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,6 +28,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import com.dartdl.app.R
+import com.dartdl.app.util.makeToast
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
@@ -63,33 +42,33 @@ private fun Long.toTimeString(): String {
     else "%02d:%02d".format(minutes, seconds)
 }
 
-/**
- * In-App Video/Audio player (Issue 1 fix + new feature).
- *
- * Accepts a [fileUri] (content:// or file://) and plays it using ExoPlayer (Media3).
- * Bypasses the system app chooser entirely — DartDL becomes its own media player.
- *
- * @param fileUri  The content or file URI of the media to play.
- * @param title    Optional display title shown above the player.
- * @param onBack   Called when user navigates back.
- */
 @Composable
 fun PlayerPage(
     fileUri: String,
     title: String = "",
     onBack: () -> Unit = {},
 ) {
+    val decodedUri = remember(fileUri) { Uri.decode(fileUri) }
+    val decodedTitle = remember(title) { Uri.decode(title) }
+
     val context = LocalContext.current
 
     // ── ExoPlayer setup ──────────────────────────────────────────────────────────
     val player = remember {
         ExoPlayer.Builder(context).build().also { exo ->
             val dataSourceFactory = androidx.media3.datasource.DefaultDataSource.Factory(context)
-            val mediaSource = androidx.media3.exoplayer.source.ProgressiveMediaSource.Factory(dataSourceFactory)
-                .createMediaSource(MediaItem.fromUri(Uri.parse(fileUri)))
-            exo.setMediaSource(mediaSource)
+            val uri = if (decodedUri.startsWith("/")) Uri.fromFile(java.io.File(decodedUri)) else Uri.parse(decodedUri)
+            val mediaItem = MediaItem.fromUri(uri)
+            exo.setMediaItem(mediaItem)
             exo.prepare()
             exo.playWhenReady = true
+            
+            exo.addListener(object : Player.Listener {
+                override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                    android.util.Log.e("PlayerPage", "ExoPlayer Error: ${error.message}", error)
+                    context.makeToast("Playback Error: ${error.message}")
+                }
+            })
         }
     }
 
@@ -145,7 +124,7 @@ fun PlayerPage(
             .background(Color.Black)
             .clickable { showControls = !showControls },
     ) {
-        // ExoPlayer surface — we use our own controls overlay (useController = false)
+        // ExoPlayer surface
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
@@ -187,7 +166,7 @@ fun PlayerPage(
                     .background(Color.Black.copy(alpha = 0.45f))
                     .systemBarsPadding(),
             ) {
-                // Top bar: back + title
+                // Top bar
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -201,9 +180,9 @@ fun PlayerPage(
                             tint = Color.White,
                         )
                     }
-                    if (title.isNotBlank()) {
+                    if (decodedTitle.isNotBlank()) {
                         Text(
-                            text = title,
+                            text = decodedTitle,
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.SemiBold,
                             ),
@@ -216,7 +195,7 @@ fun PlayerPage(
                     }
                 }
 
-                // Centre: play/pause
+                // Centre
                 IconButton(
                     onClick = { if (player.isPlaying) player.pause() else player.play() },
                     modifier = Modifier
@@ -232,7 +211,7 @@ fun PlayerPage(
                     )
                 }
 
-                // Bottom: seek bar + timestamps
+                // Bottom
                 Column(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)

@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import com.dartdl.app.R
 import com.dartdl.app.ui.common.LocalWindowWidthState
 import com.dartdl.app.ui.common.Route
+import com.dartdl.app.util.makeToast
 import kotlinx.coroutines.launch
 
 @Composable
@@ -117,6 +118,15 @@ fun NavigationDrawerSheetContent(
                 selected = currentRoute == Route.HOME,
             )
             NavigationDrawerItem(
+                label = { Text("WhatsApp Status Saver") },
+                icon = { Icon(Icons.Outlined.Download, null) },
+                onClick = {
+                    onNavigateToRoute(Route.STATUS_SAVER)
+                    scope.launch { onDismissRequest() }
+                },
+                selected = currentRoute == Route.STATUS_SAVER,
+            )
+            NavigationDrawerItem(
                 label = { Text(stringResource(R.string.downloads_history)) },
                 icon = { Icon(Icons.Outlined.Subscriptions, null) },
                 onClick = {
@@ -134,6 +144,7 @@ fun NavigationDrawerSheetContent(
                 },
                 selected = currentRoute == Route.TASK_LIST,
             )
+
             NavigationDrawerItem(
                 label = { Text(stringResource(R.string.settings)) },
                 icon = { Icon(Icons.Outlined.Settings, null) },
@@ -232,20 +243,15 @@ fun NavigationDrawerSheetContent(
         }
         Spacer(Modifier.weight(1f))
         
-        // Debug Footer (matches Screenshot 4)
+        // Version Footer (matches Screenshot 4)
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = "DartDL",
+                text = stringResource(id = R.string.app_name),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "2.0.1",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = currentRoute ?: "unknown",
+                text = "Version: " + com.dartdl.app.BuildConfig.VERSION_NAME,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

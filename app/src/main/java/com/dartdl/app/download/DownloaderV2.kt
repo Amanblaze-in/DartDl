@@ -114,7 +114,7 @@ class DownloaderV2Impl(private val appContext: Context) : DownloaderV2, KoinComp
             enqueueFromBackup()
 
             snapshotFlow
-                    .map { it.filter { it.value.downloadState !is Completed } }
+                    //.map { it.filter { it.value.downloadState !is Completed } }
                     .distinctUntilChanged()
                     .collect {
                         it.forEach { Log.d(TAG, it.value.viewState.title) }
@@ -126,7 +126,7 @@ class DownloaderV2Impl(private val appContext: Context) : DownloaderV2, KoinComp
     private fun enqueueFromBackup() {
         val taskList =
                 PreferenceUtil.decodeTaskListBackup()
-                        .filter { it.value.downloadState !is Completed }
+                        //.filter { it.value.downloadState !is Completed }
                         .mapValues { (_, state) ->
                             val preState = state.downloadState
                             val downloadState =
@@ -149,7 +149,17 @@ class DownloaderV2Impl(private val appContext: Context) : DownloaderV2, KoinComp
                                     }
                             state.copy(downloadState = downloadState)
                         }
-        taskList.forEach(::enqueue)
+        try {
+            taskList.forEach { (task, state) ->
+                try {
+                    enqueue(task, state)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to enqueue task from backup: ${task.id}", e)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to process task list backup", e)
+        }
     }
 
     private fun Map<Task, Task.State>.countRunning(): Int = count { (_, state) ->
@@ -190,7 +200,7 @@ class DownloaderV2Impl(private val appContext: Context) : DownloaderV2, KoinComp
     }
 
     private var Task.state: Task.State
-        get() = taskStateMap[this]!!
+        get() = taskStateMap[this] ?: Task.State(Idle, null, Task.ViewState(url = url, title = url))
         set(value) {
             taskStateMap[this] = value
         }
@@ -234,14 +244,14 @@ class DownloaderV2Impl(private val appContext: Context) : DownloaderV2, KoinComp
                         Idle -> task.prepare()
                         ReadyWithInfo -> task.download()
                         else -> {
-                            throw IllegalStateException()
+                            // Already handled or in transition
                         }
                     }
                 }
     }
 
     private fun Task.prepare() {
-        check(downloadState == Idle)
+        if (downloadState != Idle) return
         if (type is TypeInfo.CustomCommand) {
             execute()
         } else {
@@ -250,7 +260,7 @@ class DownloaderV2Impl(private val appContext: Context) : DownloaderV2, KoinComp
     }
 
     private fun Task.fetchInfo() {
-        check(downloadState == Idle)
+        if (downloadState != Idle) return
         val task = this
         val taskInfo = task.type
         val playlistIndex = if (taskInfo is TypeInfo.Playlist) taskInfo.index else null
@@ -299,7 +309,7 @@ class DownloaderV2Impl(private val appContext: Context) : DownloaderV2, KoinComp
     }
 
     private fun Task.download() {
-        check(downloadState == ReadyWithInfo && info != null)
+        if (downloadState != ReadyWithInfo || info == null) return
         if (type is TypeInfo.CustomCommand) {
             execute()
             return
@@ -343,7 +353,16 @@ class DownloaderV2Impl(private val appContext: Context) : DownloaderV2, KoinComp
                             },
                     )
                     .onSuccess { pathList ->
-                        downloadState = Completed(pathList.firstOrNull())
+                        // Find the primary media file (exclude common non-media suffixes)
+                        val primaryPath = pathList.find { path ->
+                            val lowerPath = path.lowercase()
+                            !lowerPath.endsWith(".jpg") && 
+                            !lowerPath.endsWith(".png") && 
+                            !lowerPath.endsWith(".webp") &&
+                            !lowerPath.contains(".nomedia")
+                        } ?: pathList.firstOrNull()
+                        
+                        downloadState = Completed(primaryPath)
 
                         val text =
                                 appContext.getString(
@@ -436,8 +455,8 @@ class DownloaderV2Impl(private val appContext: Context) : DownloaderV2, KoinComp
      * @see Task.TypeInfo.CustomCommand
      */
     private fun Task.execute() {
-        check(downloadState == Idle)
-        check(type is TypeInfo.CustomCommand)
+        if (downloadState != Idle) return
+        if (type !is TypeInfo.CustomCommand) return
         val template = type.template
         scope
                 .launch {

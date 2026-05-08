@@ -1,5 +1,6 @@
 package com.dartdl.app.ui.page.settings
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
@@ -68,16 +69,33 @@ fun NavGraphBuilder.settingsGraph(
     }
 
     animatedComposable(Route.COOKIE_PROFILE) {
+        val cookiesViewModel: com.dartdl.app.ui.page.settings.network.CookiesViewModel = koinViewModel()
         CookieProfilePage(
-            cookiesViewModel = koinViewModel(),
-            navigateToCookieGeneratorPage = { onNavigateTo(Route.COOKIE_GENERATOR_WEBVIEW) },
+            cookiesViewModel = cookiesViewModel,
+            navigateToCookieGeneratorPage = {
+                val url = java.net.URLEncoder.encode(
+                    cookiesViewModel.stateFlow.value.editingCookieProfile.url.ifBlank { "https://www.google.com" },
+                    "UTF-8"
+                )
+                onNavigateTo("${Route.COOKIE_GENERATOR_WEBVIEW}/$url")
+            },
             onNavigateBack = onNavigateBack
         )
     }
 
-    animatedComposable(Route.COOKIE_GENERATOR_WEBVIEW) {
+    animatedComposable(
+        route = "${Route.COOKIE_GENERATOR_WEBVIEW}/{cookie_url}",
+        arguments = listOf(navArgument("cookie_url") { type = NavType.StringType })
+    ) { backStackEntry ->
+        val cookiesViewModel: com.dartdl.app.ui.page.settings.network.CookiesViewModel = koinViewModel()
+        val encodedUrl = backStackEntry.arguments?.getString("cookie_url") ?: "https://www.google.com"
+        val decodedUrl = java.net.URLDecoder.decode(encodedUrl, "UTF-8")
+        // Set the URL in the new ViewModel instance so the WebView loads correctly
+        LaunchedEffect(decodedUrl) {
+            cookiesViewModel.updateUrl(decodedUrl)
+        }
         WebViewPage(
-            cookiesViewModel = koinViewModel(),
+            cookiesViewModel = cookiesViewModel,
             onDismissRequest = onNavigateBack
         )
     }

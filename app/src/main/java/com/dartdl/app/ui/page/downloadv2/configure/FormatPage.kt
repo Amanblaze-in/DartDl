@@ -1,5 +1,6 @@
 package com.dartdl.app.ui.page.downloadv2.configure
 
+import android.app.Activity
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.spring
@@ -7,59 +8,20 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.itemsIndexed
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.grid.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Subtitles
-import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.FileDownload
-import androidx.compose.material.icons.outlined.Subtitles
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
 import androidx.compose.material3.RangeSliderState
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.ExperimentalLayoutApi as LayoutApiExperimental
+
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -71,54 +33,31 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dartdl.app.R
 import com.dartdl.app.download.DownloaderV2
 import com.dartdl.app.download.TaskFactory
-import com.dartdl.app.ui.component.ClearButton
-import com.dartdl.app.ui.component.ConfirmButton
-import com.dartdl.app.ui.component.DartDLDialog
-import com.dartdl.app.ui.component.DartDLSearchBar
-import com.dartdl.app.ui.component.DismissButton
-import com.dartdl.app.ui.component.FormatItem
-import com.dartdl.app.ui.component.FormatSubtitle
-import com.dartdl.app.ui.component.FormatVideoPreview
-import com.dartdl.app.ui.component.PreferenceInfo
-import com.dartdl.app.ui.component.SuggestedFormatItem
-import com.dartdl.app.ui.component.TextButtonWithIcon
-import com.dartdl.app.ui.component.VideoFilterChip
+import com.dartdl.app.ui.component.*
 import com.dartdl.app.ui.page.download.VideoClipDialog
 import com.dartdl.app.ui.page.download.VideoSelectionSlider
 import com.dartdl.app.ui.page.settings.general.DialogCheckBoxItem
 import com.dartdl.app.ui.theme.DartDLTheme
 import com.dartdl.app.ui.theme.generateLabelColor
-import com.dartdl.app.util.EXTRACT_AUDIO
-import com.dartdl.app.util.Format
-import com.dartdl.app.util.MERGE_MULTI_AUDIO_STREAM
-import com.dartdl.app.util.PreferenceUtil.getBoolean
-import com.dartdl.app.util.PreferenceUtil.getString
-import com.dartdl.app.util.PreferenceUtil.updateString
-import com.dartdl.app.util.SUBTITLE
-import com.dartdl.app.util.SUBTITLE_LANGUAGE
-import com.dartdl.app.util.SubtitleFormat
-import com.dartdl.app.util.VIDEO_CLIP
-import com.dartdl.app.util.VideoClip
-import com.dartdl.app.util.VideoInfo
-import com.dartdl.app.util.toHttpsUrl
+import com.dartdl.app.util.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.koin.compose.koinInject
+
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import org.koin.compose.koinInject
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlinx.coroutines.delay
-import org.koin.compose.koinInject
-import com.dartdl.app.util.PreferenceUtil
-import com.dartdl.app.util.AdManager
-import com.dartdl.app.util.makeToast
-import android.app.Activity
 
-private const val TAG = "FormatPage"
+private const val NOT_SELECTED = -1
 
-private data class FormatConfig(
+data class FormatConfig(
     val formatList: List<Format>,
     val videoClips: List<VideoClip>,
     val splitByChapter: Boolean,
@@ -127,231 +66,86 @@ private data class FormatConfig(
     val selectedAutoCaptions: List<String>,
 )
 
-@Composable
-fun FormatPage(
-    modifier: Modifier = Modifier,
-    videoInfo: VideoInfo,
-    downloader: DownloaderV2 = koinInject(),
-    onNavigateBack: () -> Unit = {},
-) {
-    if (videoInfo.formats.isNullOrEmpty()) return
-    val audioOnly = EXTRACT_AUDIO.getBoolean()
-    val mergeAudioStream = MERGE_MULTI_AUDIO_STREAM.getBoolean()
-    val subtitleLanguageRegex = SUBTITLE_LANGUAGE.getString()
-    val downloadSubtitle = SUBTITLE.getBoolean()
-    val initialSelectedSubtitles =
-        if (downloadSubtitle) {
-            videoInfo
-                .run { subtitles.keys + automaticCaptions.keys }
-                .filterWithRegex(subtitleLanguageRegex)
-        } else {
-            emptySet()
-        }
-
-    var showUpdateSubtitleDialog by remember { mutableStateOf(false) }
-
-    var diffSubtitleLanguages by remember { mutableStateOf(emptySet<String>()) }
-
-    FormatPageImpl(
-        modifier = modifier,
-        videoInfo = videoInfo,
-        onNavigateBack = onNavigateBack,
-        audioOnly = audioOnly,
-        mergeAudioStream = !audioOnly && mergeAudioStream,
-        selectedSubtitleCodes = initialSelectedSubtitles,
-        isClippingAvailable = VIDEO_CLIP.getBoolean() && (videoInfo.duration ?: .0) >= 0,
-    ) { config ->
-        with(config) {
-            diffSubtitleLanguages =
-                (selectedSubtitles + selectedAutoCaptions)
-                    .run { this - this.filterWithRegex(subtitleLanguageRegex) }
-                    .toSet()
-
-            downloader.enqueue(
-                TaskFactory.createWithConfigurations(
-                    videoInfo = videoInfo,
-                    formatList = formatList,
-                    videoClips = videoClips,
-                    splitByChapter = splitByChapter,
-                    newTitle = newTitle,
-                    selectedSubtitles = selectedSubtitles,
-                    selectedAutoCaptions = selectedAutoCaptions,
-                )
-            )
-
-            if (diffSubtitleLanguages.isNotEmpty()) {
-                showUpdateSubtitleDialog = true
-            } else {
-                onNavigateBack()
-            }
-        }
-    }
-    if (showUpdateSubtitleDialog) {
-        UpdateSubtitleLanguageDialog(
-            modifier = Modifier,
-            languages = diffSubtitleLanguages,
-            onDismissRequest = {
-                showUpdateSubtitleDialog = false
-                onNavigateBack()
-            },
-            onConfirm = {
-                SUBTITLE_LANGUAGE.updateString(
-                    (diffSubtitleLanguages + subtitleLanguageRegex).joinToString(separator = ",") {
-                        it
-                    }
-                )
-                showUpdateSubtitleDialog = false
-                onNavigateBack()
-            },
-        )
-    }
-}
-
-private const val NOT_SELECTED = -1
-
-@Preview
-@Composable
-fun FormatPagePreview() {
-    val captionsMap =
-        mapOf(
-            "en-en" to listOf(SubtitleFormat(ext = "", url = "", name = "English from English")),
-            "ja-en" to listOf(SubtitleFormat(ext = "", url = "", name = "Japanese from English")),
-            "zh-Hans-en" to
-                listOf(
-                    SubtitleFormat(ext = "", url = "", name = "Chinese (Simplified) from English")
-                ),
-            "zh-Hant-en" to
-                listOf(
-                    SubtitleFormat(ext = "", url = "", name = "Chinese (Traditional) from English")
-                ),
-        )
-
-    val subMap = buildMap {
-        put("en", listOf(SubtitleFormat(ext = "ass", url = "", name = "English")))
-        put("ja", listOf(SubtitleFormat(ext = "ass", url = "", name = "Japanese")))
-    }
-    val videoInfo =
-        VideoInfo(
-            formats =
-                buildList {
-                    repeat(7) { add(Format(formatId = "$it")) }
-                    repeat(7) { add(Format(formatId = "$it", vcodec = "avc1", acodec = "none")) }
-                    repeat(7) {
-                        add(
-                            Format(
-                                formatId = "$it",
-                                acodec = "aac",
-                                vcodec = "none",
-                                format = "251 - audio only (medium)",
-                                fileSizeApprox = 2000000.0,
-                                tbr = 128.0,
-                            )
-                        )
-                    }
-                },
-            subtitles = subMap,
-            automaticCaptions = captionsMap,
-            requestedFormats =
-                buildList {
-                    add(
-                        Format(
-                            formatId = "616",
-                            format = "616 - 1920x1080 (Premium)",
-                            acodec = "none",
-                            vcodec = "vp09.00.40.08",
-                            ext = "webm",
-                        )
-                    )
-                    add(
-                        Format(
-                            formatId = "251",
-                            format = "251 - audio only (medium)",
-                            acodec = "opus",
-                            vcodec = "none",
-                            ext = "webm",
-                        )
-                    )
-                },
-            duration = 180.0,
-        )
-    DartDLTheme {
-        FormatPageImpl(
-            videoInfo = videoInfo,
-            isClippingAvailable = true,
-            mergeAudioStream = true,
-            selectedSubtitleCodes = setOf("en", "ja-en"),
-        )
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FormatPageImpl(
-    modifier: Modifier = Modifier,
-    videoInfo: VideoInfo = VideoInfo(),
-    audioOnly: Boolean = false,
-    mergeAudioStream: Boolean = false,
-    isClippingAvailable: Boolean = false,
-    selectedSubtitleCodes: Set<String>,
-    onNavigateBack: () -> Unit = {},
-    onDownloadPressed: (FormatConfig) -> Unit = { _ -> },
+fun FormatPage(
+    state: DownloadDialogViewModel.SelectionState.FormatSelection,
+    onDismissRequest: () -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+    val downloader: DownloaderV2 = koinInject()
+    val videoInfo = state.info
 
-    if (videoInfo.formats.isNullOrEmpty()) return
-    val videoOnlyFormats =
-        videoInfo.formats.filter { it.vcodec != "none" && it.acodec == "none" }.reversed()
-    val audioOnlyFormats =
-        videoInfo.formats.filter { it.acodec != "none" && it.vcodec == "none" }.reversed()
-    val videoAudioFormats =
-        videoInfo.formats.filter { it.acodec != "none" && it.vcodec != "none" }.reversed()
+    FormatPageImpl(
+        videoInfo = videoInfo,
+        onNavigateBack = onDismissRequest,
+        onDownloadPressed = { config ->
+            val taskWithState = TaskFactory.createWithConfigurations(
+                videoInfo = videoInfo,
+                formatList = config.formatList,
+                videoClips = config.videoClips,
+                splitByChapter = config.splitByChapter,
+                newTitle = config.newTitle,
+                selectedSubtitles = config.selectedSubtitles,
+                selectedAutoCaptions = config.selectedAutoCaptions
+            )
+            // BUG FIX: Pass taskWithState to reuse fetched VideoInfo and avoid Instagram rate limit
+            downloader.enqueue(taskWithState)
+            onDismissRequest()
+        },
+    )
+}
 
-    val duration = videoInfo.duration ?: 0.0
-
-    var videoOnlyItemLimit by remember { mutableIntStateOf(6) }
-    var audioOnlyItemLimit by remember { mutableIntStateOf(6) }
-    var videoAudioItemLimit by remember { mutableIntStateOf(6) }
-
-    val isSuggestedFormatAvailable =
-        !videoInfo.requestedFormats.isNullOrEmpty() || !videoInfo.requestedDownloads.isNullOrEmpty()
-
-    var isSuggestedFormatSelected by remember { mutableStateOf(isSuggestedFormatAvailable) }
-
-    var selectedVideoAudioFormat by remember { mutableIntStateOf(NOT_SELECTED) }
-    var selectedVideoOnlyFormat by remember { mutableIntStateOf(NOT_SELECTED) }
-    val selectedAudioOnlyFormats = remember { mutableStateListOf<Int>() }
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
+@Composable
+private fun FormatPageImpl(
+    videoInfo: VideoInfo,
+    onNavigateBack: () -> Unit,
+    onDownloadPressed: (FormatConfig) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
-
+    val scope = rememberCoroutineScope()
     val uriHandler = LocalUriHandler.current
     val hapticFeedback = LocalHapticFeedback.current
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
-    fun String?.share() =
-        this?.let {
-            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-            context.startActivity(
-                Intent.createChooser(
-                    Intent().apply {
-                        action = Intent.ACTION_SEND
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, it)
-                    },
-                    null,
-                ),
-                null,
-            )
-        }
+    val audioOnly = videoInfo.requestedFormats?.all { it.vcodec == "none" } ?: false
+    val isSuggestedFormatAvailable = videoInfo.requestedFormats != null || videoInfo.requestedDownloads != null
 
+    var isSuggestedFormatSelected by remember { mutableStateOf(isSuggestedFormatAvailable) }
+    val selectedAudioOnlyFormats = remember { mutableStateListOf<Int>() }
+    var selectedVideoAudioFormat by remember { mutableIntStateOf(NOT_SELECTED) }
+    var selectedVideoOnlyFormat by remember { mutableIntStateOf(NOT_SELECTED) }
+
+    val audioOnlyFormats = remember(videoInfo) { videoInfo.formats?.filter { it.vcodec == "none" }?.sortedByDescending { it.abr } ?: emptyList() }
+    val videoAudioFormats = remember(videoInfo) { videoInfo.formats?.filter { it.vcodec != "none" && it.acodec != "none" }?.sortedByDescending { it.height } ?: emptyList() }
+    val videoOnlyFormats = remember(videoInfo) { videoInfo.formats?.filter { it.vcodec != "none" && it.acodec == "none" }?.sortedByDescending { it.height } ?: emptyList() }
+
+    var audioOnlyItemLimit by remember { mutableIntStateOf(6) }
+    var videoOnlyItemLimit by remember { mutableIntStateOf(6) }
+    var videoAudioItemLimit by remember { mutableIntStateOf(6) }
+
+    val mergeAudioStream = true // Always merge if possible
     var isClippingVideo by remember { mutableStateOf(false) }
     var isSplittingVideo by remember { mutableStateOf(false) }
-    val isSplitByChapterAvailable = !videoInfo.chapters.isNullOrEmpty()
+
+    val isClippingAvailable = videoInfo.duration != null
+    val isSplitByChapterAvailable = videoInfo.chapters?.isNotEmpty() == true
+
+    val selectedSubtitleCodes = videoInfo.subtitles.keys.take(1) // Default to first subtitle if any
 
     val videoDurationRange = 0f..(videoInfo.duration?.toFloat() ?: 0f)
     var showVideoClipDialog by remember { mutableStateOf(false) }
     var showRenameDialog by remember { mutableStateOf(false) }
     var showSubtitleSelectionDialog by remember { mutableStateOf(false) }
+    var showOpusInfoDialog by remember { mutableStateOf(false) }
 
     var videoClipDuration by remember { mutableStateOf(videoDurationRange) }
     var videoTitle by remember { mutableStateOf("") }
+
+    var showRewardAdDialog by remember { mutableStateOf(false) }
+    var isAdLoading by remember { mutableStateOf(false) }
+    var pendingFormatConfig by remember { mutableStateOf<FormatConfig?>(null) }
 
     val suggestedSubtitleMap: Map<String, List<SubtitleFormat>> =
         videoInfo.subtitles.takeIf { it.isNotEmpty() }
@@ -364,8 +158,19 @@ private fun FormatPageImpl(
         delay(200)
         videoClipDuration = videoDurationRange
     }
+    
+    LaunchedEffect(Unit) {
+        // Pre-load ad
+        AdManager.loadRewarded(context)
+    }
 
     val lazyGridState = rememberLazyGridState()
+    val isFabExpanded by remember { derivedStateOf { lazyGridState.firstVisibleItemIndex > 0 } }
+
+    val selectedSubtitles = remember {
+        mutableStateListOf<String>().apply { addAll(selectedSubtitleCodes) }
+    }
+    val selectedAutoCaptions = remember { mutableStateListOf<String>() }
 
     val formatList: List<Format> by remember {
         derivedStateOf {
@@ -386,28 +191,20 @@ private fun FormatPageImpl(
         }
     }
 
-    val isFabExpanded by remember { derivedStateOf { lazyGridState.firstVisibleItemIndex > 0 } }
-
-    val selectedSubtitles = remember {
-        mutableStateListOf<String>().apply { addAll(selectedSubtitleCodes) }
-    }
-
-    val selectedAutoCaptions = remember { mutableStateListOf<String>() }
-
     Scaffold(
         modifier = modifier.fillMaxSize().nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.format_selection),
+                        text = stringResource(com.dartdl.app.R.string.format_selection),
                         style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
                     )
                 },
                 scrollBehavior = scrollBehavior,
                 navigationIcon = {
                     IconButton(onClick = { onNavigateBack() }) {
-                        Icon(Icons.Outlined.Close, stringResource(R.string.close))
+                        Icon(Icons.Default.Close, stringResource(com.dartdl.app.R.string.close))
                     }
                 },
             )
@@ -417,69 +214,20 @@ private fun FormatPageImpl(
             if (isFormatSelected) {
                 ExtendedFloatingActionButton(
                     onClick = {
-                        val isHighRes = formatList.any { (it.height ?: 0.0) >= 1080.0 }
                         val config = FormatConfig(
                             formatList = formatList,
-                            videoClips =
-                                if (isClippingVideo) listOf(VideoClip(videoClipDuration))
-                                else emptyList(),
+                            videoClips = if (isClippingVideo) listOf(VideoClip(videoClipDuration)) else emptyList(),
                             splitByChapter = isSplittingVideo,
                             newTitle = videoTitle,
                             selectedSubtitles = selectedSubtitles,
                             selectedAutoCaptions = selectedAutoCaptions,
                         )
-
-                        if (isHighRes) {
-                            PreferenceUtil.checkAndResetDailyHighResLimit()
-                            val count = PreferenceUtil.getHighResDownloadCount()
-                            if (count >= 2) {
-                                // Show rewarded ad
-                                val activity = context as? Activity
-                                if (activity != null) {
-                                    if (AdManager.isRewardedAdReady) {
-                                        AdManager.showRewarded(activity) { success ->
-                                            if (success) {
-                                                onDownloadPressed(config)
-                                            } else {
-                                                context.makeToast(R.string.reward_not_completed)
-                                            }
-                                        }
-                                    } else {
-                                        context.makeToast("Loading ad... please wait")
-                                        AdManager.loadRewarded(context) { ready ->
-                                            if (ready) {
-                                                AdManager.showRewarded(activity) { success ->
-                                                    if (success) {
-                                                        onDownloadPressed(config)
-                                                    } else {
-                                                        context.makeToast(R.string.reward_not_completed)
-                                                    }
-                                                }
-                                            } else {
-                                                context.makeToast("Ad not available right now. Please try again.")
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    onDownloadPressed(config) // Fallback if no activity context
-                                }
-                            } else {
-                                PreferenceUtil.updateHighResDownloadCount(count + 1)
-                                onDownloadPressed(config)
-                            }
-                        } else {
-                            onDownloadPressed(config)
-                        }
+                        pendingFormatConfig = config
+                        showRewardAdDialog = true
                     },
                     modifier = Modifier.padding(12.dp),
-                    icon = {
-                        Icon(
-                            imageVector = Icons.Outlined.FileDownload,
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp),
-                        )
-                    },
-                    text = { Text(stringResource(R.string.start_download)) },
+                    icon = { Icon(Icons.Default.FileDownload, null, modifier = Modifier.size(24.dp)) },
+                    text = { Text(stringResource(com.dartdl.app.R.string.start_download)) },
                     expanded = isFabExpanded,
                 )
             }
@@ -494,80 +242,59 @@ private fun FormatPageImpl(
             columns = GridCells.Adaptive(150.dp),
             contentPadding = PaddingValues(8.dp),
         ) {
-            videoInfo.run {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    FormatVideoPreview(
-                        modifier = Modifier.padding(horizontal = 8.dp),
-                        title = videoTitle.ifEmpty { title },
-                        author = uploader ?: channel ?: uploaderId.toString(),
-                        thumbnailUrl = thumbnail.toHttpsUrl(),
-                        duration = duration.roundToInt(),
-                        isClippingVideo = isClippingVideo,
-                        isSplittingVideo = isSplittingVideo,
-                        isClippingAvailable = isClippingAvailable,
-                        isSplitByChapterAvailable = isSplitByChapterAvailable,
-                        onClippingToggled = { isClippingVideo = !isClippingVideo },
-                        onSplittingToggled = { isSplittingVideo = !isSplittingVideo },
-                        onRename = { showRenameDialog = true },
-                        onOpenThumbnail = { uriHandler.openUri(thumbnail.toHttpsUrl()) },
-                    )
-                }
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                FormatVideoPreview(
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                    title = videoTitle.ifEmpty { videoInfo.title },
+                    author = videoInfo.uploader ?: videoInfo.channel ?: videoInfo.uploaderId.toString(),
+                    thumbnailUrl = videoInfo.thumbnail.toHttpsUrl(),
+                    duration = videoInfo.duration?.roundToInt() ?: 0,
+                    isClippingVideo = isClippingVideo,
+                    isSplittingVideo = isSplittingVideo,
+                    isClippingAvailable = isClippingAvailable,
+                    isSplitByChapterAvailable = isSplitByChapterAvailable,
+                    onClippingToggled = { isClippingVideo = !isClippingVideo },
+                    onSplittingToggled = { isSplittingVideo = !isSplittingVideo },
+                    onRename = { showRenameDialog = true },
+                    onOpenThumbnail = { uriHandler.openUri(videoInfo.thumbnail.toHttpsUrl()) },
+                )
             }
 
             item(span = { GridItemSpan(maxLineSpan) }) {
-                var shouldUpdateClipDuration by remember { mutableStateOf(false) }
-
                 Column {
                     AnimatedVisibility(visible = isClippingVideo) {
                         Column {
-                            val state =
-                                remember(isClippingVideo, showVideoClipDialog) {
-                                    RangeSliderState(
-                                        activeRangeStart = videoClipDuration.start,
-                                        activeRangeEnd = videoClipDuration.endInclusive,
-                                        valueRange = videoDurationRange,
-                                        onValueChangeFinished = { shouldUpdateClipDuration = true },
-                                    )
-                                }
-                            DisposableEffect(shouldUpdateClipDuration) {
-                                videoClipDuration = state.activeRangeStart..state.activeRangeEnd
-                                onDispose { shouldUpdateClipDuration = false }
+                            val state = remember(isClippingVideo, showVideoClipDialog) {
+                                RangeSliderState(
+                                    activeRangeStart = videoClipDuration.start,
+                                    activeRangeEnd = videoClipDuration.endInclusive,
+                                    valueRange = videoDurationRange,
+                                    onValueChangeFinished = { videoClipDuration = videoClipDuration },
+                                )
                             }
-
                             VideoSelectionSlider(
                                 modifier = Modifier.fillMaxWidth(),
                                 state = state,
                                 onDiscard = { isClippingVideo = false },
                                 onDurationClick = { showVideoClipDialog = true },
                             )
-                            androidx.compose.material3.HorizontalDivider()
+                            HorizontalDivider()
                         }
                     }
-
                     AnimatedVisibility(visible = isSplittingVideo) {
-                        Column {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Text(
-                                    text =
-                                        stringResource(
-                                            id = R.string.split_video_msg,
-                                            videoInfo.chapters?.size ?: 0,
-                                        ),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    modifier = Modifier.padding(horizontal = 12.dp),
-                                )
-                                Spacer(modifier = Modifier.weight(1f))
-                                TextButtonWithIcon(
-                                    onClick = { isSplittingVideo = false },
-                                    icon = Icons.Outlined.Delete,
-                                    text = stringResource(id = R.string.discard),
-                                    contentColor = MaterialTheme.colorScheme.error,
-                                )
-                            }
-                            androidx.compose.material3.HorizontalDivider()
+                        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = stringResource(com.dartdl.app.R.string.split_video_msg, videoInfo.chapters?.size ?: 0),
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(horizontal = 12.dp),
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            TextButtonWithIcon(
+                                onClick = { isSplittingVideo = false },
+                                icon = Icons.Default.Delete,
+                                text = stringResource(com.dartdl.app.R.string.discard),
+                                contentColor = MaterialTheme.colorScheme.error,
+                            )
                         }
                     }
                 }
@@ -575,42 +302,24 @@ private fun FormatPageImpl(
 
             if (suggestedSubtitleMap.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(top = 12.dp).padding(horizontal = 12.dp),
-                        ) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 12.dp)) {
                             Text(
-                                text = stringResource(id = R.string.subtitle_language),
+                                text = stringResource(com.dartdl.app.R.string.subtitle_language),
                                 color = MaterialTheme.colorScheme.primary,
                                 style = MaterialTheme.typography.titleSmall,
                                 modifier = Modifier.weight(1f),
                             )
-
-                            ClickableTextAction(
-                                visible = true,
-                                text =
-                                    stringResource(
-                                        id =
-                                            androidx.appcompat.R.string
-                                                .abc_activity_chooser_view_see_all
-                                    ),
-                            ) {
-                                showSubtitleSelectionDialog = true
-                            }
+                            ClickableTextAction(visible = true, text = "See all") { showSubtitleSelectionDialog = true }
                         }
-
-                        LazyRow(modifier = Modifier.padding()) {
+                        LazyRow {
                             for ((code, formats) in suggestedSubtitleMap) {
                                 item {
                                     VideoFilterChip(
                                         selected = selectedSubtitles.contains(code),
                                         onClick = {
-                                            if (selectedSubtitles.contains(code)) {
-                                                selectedSubtitles.remove(code)
-                                            } else {
-                                                selectedSubtitles.add(code)
-                                            }
+                                            if (selectedSubtitles.contains(code)) selectedSubtitles.remove(code)
+                                            else selectedSubtitles.add(code)
                                         },
                                         label = formats.first().run { name ?: protocol ?: code },
                                     )
@@ -623,179 +332,119 @@ private fun FormatPageImpl(
 
             if (isSuggestedFormatAvailable) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier =
-                            Modifier.padding(top = 12.dp, bottom = 4.dp).padding(horizontal = 12.dp),
-                    ) {
-                        FormatSubtitle(text = stringResource(R.string.suggested))
-                    }
+                    FormatSubtitle(text = stringResource(com.dartdl.app.R.string.suggested), modifier = Modifier.padding(horizontal = 12.dp))
                 }
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    val onClick = {
-                        isSuggestedFormatSelected = true
-                        selectedAudioOnlyFormats.clear()
-                        selectedVideoAudioFormat = NOT_SELECTED
-                        selectedVideoOnlyFormat = NOT_SELECTED
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        SuggestedFormatItem(
-                            modifier = Modifier.weight(1f),
-                            videoInfo = videoInfo,
-                            selected = isSuggestedFormatSelected,
-                            onClick = onClick,
-                        )
-                    }
+                    SuggestedFormatItem(
+                        modifier = Modifier.padding(horizontal = 8.dp),
+                        videoInfo = videoInfo,
+                        selected = isSuggestedFormatSelected,
+                        onClick = {
+                            isSuggestedFormatSelected = true
+                            selectedAudioOnlyFormats.clear()
+                            selectedVideoAudioFormat = NOT_SELECTED
+                            selectedVideoOnlyFormat = NOT_SELECTED
+                        },
+                    )
                 }
             }
 
-            if (audioOnlyFormats.isNotEmpty())
+            if (audioOnlyFormats.isNotEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = 16.dp).padding(horizontal = 12.dp),
-                    ) {
-                        FormatSubtitle(
-                            text = stringResource(R.string.audio),
-                            color = MaterialTheme.colorScheme.secondary,
-                            modifier = Modifier.weight(1f).padding(vertical = 4.dp),
-                        )
-
-                        ClickableTextAction(
-                            visible = audioOnlyItemLimit < audioOnlyFormats.size,
-                            text = stringResource(R.string.show_all_items, audioOnlyFormats.size),
-                        ) {
-                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            audioOnlyItemLimit = Int.MAX_VALUE
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 16.dp, start = 12.dp, end = 12.dp)) {
+                        FormatSubtitle(text = stringResource(com.dartdl.app.R.string.audio), color = MaterialTheme.colorScheme.secondary, modifier = Modifier.weight(1f))
+                        IconButton(onClick = { showOpusInfoDialog = true }, modifier = Modifier.size(24.dp)) {
+                            Icon(Icons.Default.Info, null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.secondary)
                         }
                     }
                 }
-
-            itemsIndexed(
-                audioOnlyFormats.subList(
-                    fromIndex = 0,
-                    toIndex = min(audioOnlyItemLimit, audioOnlyFormats.size),
-                )
-            ) { index, formatInfo ->
-                FormatItem(
-                    formatInfo = formatInfo,
-                    duration = duration,
-                    selected = selectedAudioOnlyFormats.contains(index),
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    outlineColor = MaterialTheme.colorScheme.secondary,
-                    onLongClick = { formatInfo.url.share() },
-                ) {
-                    if (selectedAudioOnlyFormats.contains(index)) {
-                        selectedAudioOnlyFormats.remove(index)
-                    } else {
-                        if (!mergeAudioStream) {
-                            selectedAudioOnlyFormats.clear()
+                itemsIndexed(audioOnlyFormats.subList(0, min(audioOnlyItemLimit, audioOnlyFormats.size))) { index, formatInfo ->
+                    FormatItem(
+                        formatInfo = formatInfo,
+                        duration = videoInfo.duration ?: 0.0,
+                        selected = selectedAudioOnlyFormats.contains(index),
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        outlineColor = MaterialTheme.colorScheme.secondary,
+                        onLongClick = { 
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, formatInfo.url ?: "")
+                            }
+                            context.startActivity(Intent.createChooser(intent, "Share Link"))
+                        },
+                        onClick = {
+                            if (selectedAudioOnlyFormats.contains(index)) selectedAudioOnlyFormats.remove(index)
+                            else {
+                                if (!mergeAudioStream) selectedAudioOnlyFormats.clear()
+                                isSuggestedFormatSelected = false
+                                selectedAudioOnlyFormats.add(index)
+                            }
                         }
-                        isSuggestedFormatSelected = false
-                        selectedAudioOnlyFormats.add(index)
-                    }
+                    )
                 }
             }
 
             if (!audioOnly) {
-                if (videoOnlyFormats.isNotEmpty())
+                if (videoOnlyFormats.isNotEmpty()) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(top = 16.dp).padding(horizontal = 12.dp),
-                        ) {
-                            FormatSubtitle(
-                                text = stringResource(R.string.video_only),
-                                color = MaterialTheme.colorScheme.tertiary,
-                                modifier = Modifier.weight(1f).padding(vertical = 4.dp),
-                            )
-
-                            ClickableTextAction(
-                                visible = videoOnlyItemLimit < videoOnlyFormats.size,
-                                text =
-                                    stringResource(R.string.show_all_items, videoOnlyFormats.size),
-                            ) {
-                                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                videoOnlyItemLimit = Int.MAX_VALUE
-                            }
-                        }
+                        FormatSubtitle(text = stringResource(com.dartdl.app.R.string.video_only), color = MaterialTheme.colorScheme.tertiary, modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
                     }
-                itemsIndexed(
-                    videoOnlyFormats.subList(0, min(videoOnlyItemLimit, videoOnlyFormats.size))
-                ) { index, formatInfo ->
-                    FormatItem(
-                        formatInfo = formatInfo,
-                        duration = duration,
-                        selected = selectedVideoOnlyFormat == index,
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        outlineColor = MaterialTheme.colorScheme.tertiary,
-                        onLongClick = { formatInfo.url.share() },
-                    ) {
-                        selectedVideoOnlyFormat =
-                            if (selectedVideoOnlyFormat == index) NOT_SELECTED
-                            else {
-                                selectedVideoAudioFormat = NOT_SELECTED
-                                isSuggestedFormatSelected = false
-                                index
+                    itemsIndexed(videoOnlyFormats.subList(0, min(videoOnlyItemLimit, videoOnlyFormats.size))) { index, formatInfo ->
+                        FormatItem(
+                            formatInfo = formatInfo,
+                            duration = videoInfo.duration ?: 0.0,
+                            selected = selectedVideoOnlyFormat == index,
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            outlineColor = MaterialTheme.colorScheme.tertiary,
+                            onLongClick = { 
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, formatInfo.url ?: "")
                             }
-                    }
-                }
-            }
-            if (videoAudioFormats.isNotEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(top = 16.dp).padding(horizontal = 12.dp),
-                    ) {
-                        FormatSubtitle(
-                            text = stringResource(R.string.video),
-                            modifier = Modifier.weight(1f).padding(vertical = 4.dp),
+                            context.startActivity(Intent.createChooser(intent, "Share Link"))
+                        },
+                            onClick = {
+                                selectedVideoOnlyFormat = if (selectedVideoOnlyFormat == index) NOT_SELECTED else {
+                                    selectedVideoAudioFormat = NOT_SELECTED
+                                    isSuggestedFormatSelected = false
+                                    index
+                                }
+                            }
                         )
-                        ClickableTextAction(
-                            visible = videoAudioItemLimit < videoAudioFormats.size,
-                            text = stringResource(R.string.show_all_items, videoAudioFormats.size),
-                        ) {
-                            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                            videoAudioItemLimit = Int.MAX_VALUE
-                        }
                     }
                 }
-                itemsIndexed(
-                    videoAudioFormats.subList(0, min(videoAudioItemLimit, videoAudioFormats.size))
-                ) { index, formatInfo ->
-                    FormatItem(
-                        formatInfo = formatInfo,
-                        duration = duration,
-                        selected = selectedVideoAudioFormat == index,
-                        onLongClick = { formatInfo.url.share() },
-                    ) {
-                        selectedVideoAudioFormat =
-                            if (selectedVideoAudioFormat == index) NOT_SELECTED
-                            else {
-                                selectedAudioOnlyFormats.clear()
-                                selectedVideoOnlyFormat = NOT_SELECTED
-                                isSuggestedFormatSelected = false
-                                index
+                if (videoAudioFormats.isNotEmpty()) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        FormatSubtitle(text = stringResource(com.dartdl.app.R.string.video), modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp))
+                    }
+                    itemsIndexed(videoAudioFormats.subList(0, min(videoAudioItemLimit, videoAudioFormats.size))) { index, formatInfo ->
+                        FormatItem(
+                            formatInfo = formatInfo,
+                            duration = videoInfo.duration ?: 0.0,
+                            selected = selectedVideoAudioFormat == index,
+                            onLongClick = { 
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, formatInfo.url ?: "")
                             }
+                            context.startActivity(Intent.createChooser(intent, "Share Link"))
+                        },
+                            onClick = {
+                                selectedVideoAudioFormat = if (selectedVideoAudioFormat == index) NOT_SELECTED else {
+                                    selectedAudioOnlyFormats.clear()
+                                    selectedVideoOnlyFormat = NOT_SELECTED
+                                    isSuggestedFormatSelected = false
+                                    index
+                                }
+                            }
+                        )
                     }
                 }
             }
-
-            if (!audioOnly && audioOnlyFormats.isNotEmpty() && videoOnlyFormats.isNotEmpty())
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    PreferenceInfo(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
-                        text = stringResource(R.string.abs_hint),
-                        applyPaddings = false,
-                    )
-                }
             item { Spacer(modifier = Modifier.height(64.dp)) }
         }
     }
+
     if (showVideoClipDialog)
         VideoClipDialog(
             onDismissRequest = { showVideoClipDialog = false },
@@ -808,24 +457,104 @@ private fun FormatPageImpl(
         RenameDialog(
             initialValue = videoTitle.ifEmpty { videoInfo.title },
             onDismissRequest = { showRenameDialog = false },
-        ) {
-            videoTitle = it
-        }
+            onConfirm = { videoTitle = it }
+        )
+
     if (showSubtitleSelectionDialog)
         SubtitleSelectionDialog(
             suggestedSubtitles = suggestedSubtitleMap,
             autoCaptions = otherSubtitleMap,
             selectedSubtitles = selectedSubtitles,
             onDismissRequest = { showSubtitleSelectionDialog = false },
-            onConfirm = { subs, autoSubs ->
-                selectedSubtitles.run {
-                    clear()
-                    addAll(subs)
-                }
-
+            onConfirm = { subs, _ ->
+                selectedSubtitles.clear()
+                selectedSubtitles.addAll(subs)
                 showSubtitleSelectionDialog = false
             },
         )
+
+    if (showRewardAdDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!isAdLoading) showRewardAdDialog = false },
+            title = { Text(stringResource(com.dartdl.app.R.string.download)) },
+            text = { 
+                Column {
+                    Text("Watch a short ad to start your download.")
+                    if (isAdLoading) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("Loading Ad...", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    enabled = !isAdLoading,
+                    onClick = {
+                        val activity = context as? Activity
+                        val config = pendingFormatConfig
+                        if (activity != null && config != null) {
+                            if (AdManager.isRewardedAdReady) {
+                                AdManager.showRewarded(activity) { success ->
+                                    if (success) {
+                                        showRewardAdDialog = false
+                                        onDownloadPressed(config)
+                                    } else {
+                                        context.makeToast("Ad not completed. Please watch the full ad to download.")
+                                    }
+                                }
+                            } else {
+                                // Ad not ready, wait and load
+                                isAdLoading = true
+                                AdManager.loadRewarded(context) { ready ->
+                                    scope.launch {
+                                        if (ready) {
+                                            delay(500)
+                                            isAdLoading = false
+                                            AdManager.showRewarded(activity) { success ->
+                                                if (success) {
+                                                    showRewardAdDialog = false
+                                                    onDownloadPressed(config)
+                                                } else {
+                                                    context.makeToast("Ad not completed.")
+                                                }
+                                            }
+                                        } else {
+                                            isAdLoading = false
+                                            // Fallback to interstitial ONLY if rewarded fails but we still want to monetize
+                                            // Actually, the user wants strict ads, so let's show an error message.
+                                            context.makeToast("Failed to load ad. Please try again.")
+                                        }
+                                    }
+                                }
+                            }
+                        } else if (config != null) {
+                            onDownloadPressed(config)
+                        }
+                    }
+                ) {
+                    Text(if (isAdLoading) "Loading..." else "Watch Ad & Download")
+                }
+            },
+            dismissButton = {
+                TextButton(enabled = !isAdLoading, onClick = { showRewardAdDialog = false }) {
+                    Text(stringResource(com.dartdl.app.R.string.cancel))
+                }
+            }
+        )
+    }
+    if (showOpusInfoDialog) {
+        DartDLDialog(
+            onDismissRequest = { showOpusInfoDialog = false },
+            icon = { Icon(Icons.Default.Info, null) },
+            title = { Text(stringResource(com.dartdl.app.R.string.opus_vs_mp3_title)) },
+            text = { Text(stringResource(com.dartdl.app.R.string.opus_vs_mp3_content)) },
+            confirmButton = { ConfirmButton { showOpusInfoDialog = false } }
+        )
+    }
 }
 
 @Composable
@@ -837,82 +566,20 @@ private fun RenameDialog(
     var filename by remember { mutableStateOf(initialValue) }
     DartDLDialog(
         onDismissRequest = onDismissRequest,
-        confirmButton = {
-            ConfirmButton {
-                onConfirm(filename)
-                onDismissRequest()
-            }
-        },
+        confirmButton = { ConfirmButton { onConfirm(filename); onDismissRequest() } },
         dismissButton = { DismissButton { onDismissRequest() } },
-        title = { Text(text = stringResource(id = R.string.rename)) },
-        icon = { Icon(imageVector = Icons.Outlined.Edit, contentDescription = null) },
+        title = { Text(stringResource(com.dartdl.app.R.string.rename)) },
+        icon = { Icon(Icons.Default.Edit, null) },
         text = {
-            Column {
-                OutlinedTextField(
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    value = filename,
-                    onValueChange = { filename = it },
-                    label = { Text(text = stringResource(id = R.string.title)) },
-                    trailingIcon = { if (filename == initialValue) ClearButton { filename = "" } },
-                )
-            }
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = filename,
+                onValueChange = { filename = it },
+                label = { Text(stringResource(com.dartdl.app.R.string.title)) },
+            )
         },
     )
 }
-
-private fun (Map<String, List<SubtitleFormat>>).filterWithSearchText(
-    searchText: String
-): Map<String, List<SubtitleFormat>> {
-    return this.filter {
-        it.run {
-            searchText.isBlank() ||
-                key.contains(searchText, ignoreCase = true) ||
-                value.any { format ->
-                    format.name?.contains(searchText, ignoreCase = true) ?: false
-                }
-        }
-    }
-}
-
-private fun Map<String, List<SubtitleFormat>>.sortedWithSelection(
-    selectedKeys: List<String>
-): Map<String, List<SubtitleFormat>> {
-    return this.toList()
-        .sortedWith { entry1, entry2 ->
-            when {
-                entry1.first in selectedKeys && entry2.first in selectedKeys ->
-                    entry1.compareTo(entry2) // Both in selectedKeys - equal priority
-                entry1.first in selectedKeys -> -1 // str1 has priority
-                entry2.first in selectedKeys -> 1 // str2 has priority
-                else -> entry1.compareTo(entry2)
-            }
-        }
-        .toMap()
-}
-
-/**
- * Prioritizes comparison of subtitle names (via `getSubtitleName()`) if available, otherwise
- * compares the `key` portion of the pairs.
- *
- * Examples: `zh` (Chinese) should be greater than `en` (English) according to their names
- */
-private fun (Pair<String, List<SubtitleFormat>>).compareTo(
-    other: (Pair<String, List<SubtitleFormat>>)
-): Int {
-    val (key, list) = this
-    val (otherKey, otherList) = other
-
-    val name = list.getSubtitleName()
-    val otherName = otherList.getSubtitleName()
-
-    return if (name != null && otherName != null) {
-        name.compareTo(otherName)
-    } else {
-        key.compareTo(otherKey)
-    }
-}
-
-private fun (List<SubtitleFormat>).getSubtitleName(): String? = firstOrNull()?.name
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -920,215 +587,41 @@ private fun SubtitleSelectionDialog(
     suggestedSubtitles: Map<String, List<SubtitleFormat>>,
     autoCaptions: Map<String, List<SubtitleFormat>>,
     selectedSubtitles: List<String>,
-    onDismissRequest: () -> Unit = {},
-    onConfirm: (subs: List<String>, autoSubs: List<String>) -> Unit = { _, _ -> },
+    onDismissRequest: () -> Unit,
+    onConfirm: (subs: List<String>, autoSubs: List<String>) -> Unit,
 ) {
-    var searchText by remember { mutableStateOf("") }
-    val selectedSubtitles = remember {
-        mutableStateListOf<String>().apply { addAll(selectedSubtitles) }
-    }
-    val selectedAutoCaptions = remember { mutableStateListOf<String>() }
-
-    val suggestedSubtitlesFiltered =
-        suggestedSubtitles.filterWithSearchText(searchText).sortedWithSelection(selectedSubtitles)
-    val autoCaptionsFiltered =
-        autoCaptions.filterWithSearchText(searchText).sortedWithSelection(selectedSubtitles)
-
+    val selectedList = remember { mutableStateListOf<String>().apply { addAll(selectedSubtitles) } }
     DartDLDialog(
-        containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         onDismissRequest = onDismissRequest,
-        confirmButton = { ConfirmButton { onConfirm(selectedSubtitles, selectedAutoCaptions) } },
+        confirmButton = { ConfirmButton { onConfirm(selectedList, emptyList()) } },
         dismissButton = { DismissButton { onDismissRequest() } },
-        title = { Text(text = stringResource(id = R.string.subtitle_language)) },
-        icon = { Icon(imageVector = Icons.Outlined.Subtitles, contentDescription = null) },
+        title = { Text(stringResource(com.dartdl.app.R.string.subtitle_language)) },
+        icon = { Icon(Icons.Default.Subtitles, null) },
         text = {
-            Column {
-                if (autoCaptions.size + suggestedSubtitles.size > 5) {
-                    DartDLSearchBar(
-                        text = searchText,
-                        placeholderText = stringResource(R.string.search_in_subtitles),
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                    ) {
-                        searchText = it
-                    }
+            LazyColumn {
+                item { Text(stringResource(com.dartdl.app.R.string.suggested), style = MaterialTheme.typography.titleSmall) }
+                val keys = suggestedSubtitles.keys.toList()
+                items(count = keys.size) { index ->
+                    val code = keys[index]
+                    DialogCheckBoxItem(
+                        checked = selectedList.contains(code),
+                        onValueChange = { if (selectedList.contains(code)) selectedList.remove(code) else selectedList.add(code) },
+                        text = suggestedSubtitles[code]?.firstOrNull()?.name ?: code
+                    )
                 }
-
-                LazyColumn(contentPadding = PaddingValues(vertical = 12.dp)) {
-                    if (suggestedSubtitlesFiltered.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = stringResource(id = R.string.suggested),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
-                            )
-                        }
-                    }
-                    for ((code, formats) in suggestedSubtitlesFiltered) {
-                        item(key = code) {
-                            DialogCheckBoxItem(
-                                modifier = Modifier.animateItem(),
-                                checked = selectedSubtitles.contains(code),
-                                onValueChange = {
-                                    if (selectedSubtitles.contains(code)) {
-                                        selectedSubtitles.remove(code)
-                                    } else {
-                                        selectedSubtitles.add(code)
-                                    }
-                                },
-                                text = formats.first().run { name ?: protocol ?: code },
-                            )
-                        }
-                    }
-
-                    if (autoCaptionsFiltered.isNotEmpty()) {
-                        item {
-                            Text(
-                                text = stringResource(id = R.string.auto_subtitle),
-                                style = MaterialTheme.typography.titleSmall,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
-                            )
-                        }
-                        for ((code, formats) in autoCaptionsFiltered) {
-                            item(key = code) {
-                                DialogCheckBoxItem(
-                                    modifier = Modifier.animateItem(),
-                                    checked = selectedAutoCaptions.contains(code),
-                                    onValueChange = {
-                                        if (selectedAutoCaptions.contains(code)) {
-                                            selectedAutoCaptions.remove(code)
-                                        } else {
-                                            selectedAutoCaptions.add(code)
-                                        }
-                                    },
-                                    text = formats.first().run { name ?: protocol ?: code },
-                                )
-                            }
-                        }
-                    }
-                }
-                androidx.compose.material3.HorizontalDivider()
             }
         },
     )
 }
 
-@Preview
 @Composable
-private fun SubtitleSelectionDialogPreview() {
-    val captionsMap =
-        mapOf(
-            "en-en" to listOf(SubtitleFormat(ext = "", url = "", name = "English from English")),
-            "ja-en" to listOf(SubtitleFormat(ext = "", url = "", name = "Japanese from English")),
-            "zh-Hans-en" to
-                listOf(
-                    SubtitleFormat(ext = "", url = "", name = "Chinese (Simplified) from English")
-                ),
-            "zh-Hant-en" to
-                listOf(
-                    SubtitleFormat(ext = "", url = "", name = "Chinese (Traditional) from English")
-                ),
-        )
-
-    val subMap = buildMap {
-        put("en", listOf(SubtitleFormat(ext = "ass", url = "", name = "English")))
-        put("ja", listOf(SubtitleFormat(ext = "ass", url = "", name = "Japanese")))
-    }
-
-    DartDLTheme {
-        SubtitleSelectionDialog(
-            suggestedSubtitles = subMap,
-            autoCaptions = captionsMap,
-            selectedSubtitles = listOf(),
-        )
-    }
-}
-
-@Composable
-private fun ClickableTextAction(
-    visible: Boolean,
-    text: String,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    AnimatedVisibility(visible = visible, exit = fadeOut(animationSpec = spring())) {
+private fun ClickableTextAction(visible: Boolean, text: String, onClick: () -> Unit) {
+    AnimatedVisibility(visible = visible, exit = fadeOut()) {
         Text(
             text = text,
             color = MaterialTheme.colorScheme.primary,
             style = MaterialTheme.typography.titleSmall,
-            modifier =
-                modifier
-                    .clip(CircleShape)
-                    .clickable(onClick = onClick)
-                    .padding(vertical = 4.dp, horizontal = 12.dp),
+            modifier = Modifier.clip(CircleShape).clickable(onClick = onClick).padding(horizontal = 12.dp, vertical = 4.dp)
         )
     }
-}
-
-fun <T : Collection<String>> T.filterWithRegex(subtitleLanguageRegex: String): Set<String> {
-    val regexGroup = subtitleLanguageRegex.split(',')
-    return filter { language -> regexGroup.any { Regex(it).matchEntire(language) != null } }.toSet()
-}
-
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-@Preview
-fun UpdateSubtitleLanguageDialog(
-    modifier: Modifier = Modifier,
-    languages: Set<String> = setOf("en", "ja"),
-    onDismissRequest: () -> Unit = {},
-    onConfirm: () -> Unit = {},
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = {
-            Text(
-                text = stringResource(R.string.update_subtitle_languages),
-                textAlign = TextAlign.Center,
-            )
-        },
-        icon = { Icon(imageVector = Icons.Filled.Subtitles, contentDescription = null) },
-        text = {
-            Column {
-                Text(text = stringResource(R.string.update_language_msg))
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    languages.forEach {
-                        Row(modifier = Modifier, verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier =
-                                    Modifier.padding(end = 8.dp)
-                                        .size(16.dp)
-                                        .background(
-                                            color = it.hashCode().generateLabelColor(),
-                                            shape = CircleShape,
-                                        )
-                                        .clearAndSetSemantics {}
-                            ) {}
-                            Text(
-                                text = it,
-                                modifier = Modifier,
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-        },
-        confirmButton = {
-            Button(onClick = onConfirm) { Text(text = stringResource(id = R.string.okay)) }
-        },
-        dismissButton = {
-            OutlinedButton(onClick = onDismissRequest) {
-                Text(text = stringResource(id = R.string.no_thanks))
-            }
-        },
-    )
 }

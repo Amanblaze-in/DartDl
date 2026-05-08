@@ -2,7 +2,9 @@ package com.dartdl.app.ui.common
 
 object Route {
 
+    const val SPLASH = "splash"
     const val HOME = "home"
+    const val STATUS_SAVER = "status_saver"
     const val DOWNLOADS = "download_history"
     const val PLAYLIST = "playlist"
     const val SETTINGS = "settings"

@@ -112,7 +112,7 @@ object DownloadUtil {
                     addOption("-o", BASENAME)
                     addOption("-R", "1")
                     addOption("--socket-timeout", "5")
-                    addOption("--extractor-args", "generic:impersonate")
+                    addOption("--extractor-args", "youtube:player_client=android")
                     downloadPreferences.run {
                         if (extractAudio) {
                             addOption("-x")
@@ -202,8 +202,16 @@ object DownloadUtil {
                         }
                         addOption("-R", "1")
                         addOption("--no-playlist")
-                        addOption("--socket-timeout", "5")
-                        addOption("--extractor-args", "generic:impersonate")
+                        addOption("--socket-timeout", "15")
+                        addOption("--no-warnings")
+                        addOption("--no-update")
+                        addOption("--no-check-certificate")
+                        if (url.contains("instagram.com")) {
+                            addOption("--add-header", "Referer:https://www.instagram.com/")
+                            addOption("--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                            addOption("--extractor-args", "instagram:check_format=False")
+                        }
+                        addOption("--extractor-args", "youtube:player_client=android")
                     }
             return getVideoInfo(request, taskKey)
         }
@@ -400,8 +408,8 @@ object DownloadUtil {
     @CheckResult
     fun getCookieListFromDatabase(): Result<List<Cookie>> = runCatching {
         CookieManager.getInstance().run {
-            if (!hasCookies()) throw Exception("There is no cookies in the database!")
             flush()
+            if (!hasCookies()) throw Exception("There is no cookies in the database!")
         }
         SQLiteDatabase.openDatabase(
                         context.dataDir.resolve("app_webview/Default/Cookies").absolutePath,
@@ -709,10 +717,10 @@ object DownloadUtil {
                                         Throwable(context.getString(R.string.fetch_info_error_msg))
                                 )
                     }
-            if (BuildConfig.FLAVOR == "playStore" && isYouTubeUrl(url)) {
+            if ((BuildConfig.FLAVOR == "playStore" || PreferenceUtil.isPlayStoreBuild()) && isYouTubeUrl(url)) {
                 return Result.failure(
                         YoutubeDLException(
-                                "YouTube and YouTube Music downloads are restricted in this version of the app due to Google Policy."
+                                "Downloading from this platform is not supported in this version of the app due to Google Policy."
                         )
                 )
             }
@@ -763,6 +771,16 @@ object DownloadUtil {
                     }
                 } else {
                     addOption("--no-playlist")
+                }
+
+                addOption("--socket-timeout", "15")
+                addOption("--no-warnings")
+                addOption("--no-update")
+                addOption("--no-check-certificate")
+                if (url.contains("instagram.com")) {
+                    addOption("--add-header", "Referer:https://www.instagram.com/")
+                    addOption("--user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+                    addOption("--extractor-args", "instagram:check_format=False")
                 }
 
                 if (aria2c) {
@@ -958,7 +976,7 @@ object DownloadUtil {
                         if (cookies) {
                             enableCookies(userAgentString)
                         }
-                        addOption("--extractor-args", "generic:impersonate")
+                        addOption("--extractor-args", "youtube:player_client=android")
                     }
                 }
 
@@ -1003,7 +1021,7 @@ object DownloadUtil {
                         if (cookies) {
                             enableCookies(userAgentString)
                         }
-                        addOption("--extractor-args", "generic:impersonate")
+                        addOption("--extractor-args", "youtube:player_client=android")
                     }
 
             onProcessStarted()
