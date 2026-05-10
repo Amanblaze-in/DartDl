@@ -78,6 +78,6 @@ DartDL is licensed under the **GNU General Public License v3.0**. See the [LICEN
 
 ---
 <div align="center">
-Made with ❤️ by the DartDL Team
+Made with ❤️ by the Amanblaze Team
 </div>
 
