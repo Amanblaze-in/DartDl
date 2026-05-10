@@ -1,9 +1,9 @@
 ---
-description: 🏆 DartDL Hackathon Workflow & Project Deep Dive 🎯
+description: 🏆 DartDL Workflow & Project Deep Dive 🎯
 ---
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/dartdl/dartdl/fastlane/metadata/android/en-US/images/logo.png" alt="DartDL Logo" width="128" height="128">
+  <img src="https://github.com/Amanblaze-in/DartDl/blob/main/fastlane/metadata/android/en-US/images/logo.png" alt="DartDL Logo" width="128" height="128">
   <h1>🚀 DartDL 🎯</h1>
   <p><strong>🌟 The Ultimate Open-Source Download Manager for Android 🌟</strong></p>
   
