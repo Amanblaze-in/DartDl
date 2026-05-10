@@ -2,8 +2,9 @@
 <img width="144" src="fastlane/metadata/android/en-US/images/logo.png" alt="DartDL logo">
 
 ---
+# DartDL Image
     
-<img width="144" src="https://play-lh.googleusercontent.com/FoE_agxNzkCoJ_OtZBHyLk_HzE-9ASUjzgIkkn-G655RQvj6PCrICr_EjpfYUd5fHSikCumzoIxQ5AtQPXkm8w=w5120-h2880-rw" alt="DartDL logo">
+<img width="720" src="https://play-lh.googleusercontent.com/FoE_agxNzkCoJ_OtZBHyLk_HzE-9ASUjzgIkkn-G655RQvj6PCrICr_EjpfYUd5fHSikCumzoIxQ5AtQPXkm8w=w5120-h2880-rw" alt="DartDL logo">
 
 ---
 
