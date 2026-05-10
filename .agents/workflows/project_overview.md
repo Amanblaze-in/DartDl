@@ -3,7 +3,7 @@ description: 🏆 DartDL Hackathon Workflow & Project Deep Dive 🎯
 ---
 
 <div align="center">
-  <img src="https://raw.githubusercontent.com/dartdl/dartdl/main/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" alt="DartDL Logo" width="128" height="128">
+  <img src="https://raw.githubusercontent.com/dartdl/dartdl/fastlane/metadata/android/en-US/images/logo.png" alt="DartDL Logo" width="128" height="128">
   <h1>🚀 DartDL 🎯</h1>
   <p><strong>🌟 The Ultimate Open-Source Download Manager for Android 🌟</strong></p>
   
